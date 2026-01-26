@@ -7,6 +7,7 @@ const connectDB = require("./utils/db");
 const errorHandler = require("./src/middlewares/error");
 
 const authRoutes = require("./src/routes/auth.routes");
+const sellerRoutes = require("./src/routes/seller.routes");
 
 connectDB();
 
@@ -18,6 +19,8 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 app.use("/api/auth", authRoutes);
+app.use("/api/sellers", sellerRoutes);
+
 
 app.get("/", (req, res) => {
     res.json({
