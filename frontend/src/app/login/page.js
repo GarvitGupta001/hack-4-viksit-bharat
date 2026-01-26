@@ -114,7 +114,7 @@ const LoginPage = () => {
             </form>
 
             <div className="auth-footer">
-              <p>Don't have an account? <Link href="/signup" className="auth-link">Sign up</Link></p>
+              <p style={{color:"black"}}> New user? <Link href="/signup" className="auth-link">Create an account</Link></p>
             </div>
           </div>
         </div>

@@ -13,10 +13,25 @@ const HomePage = () => {
         {/* Hero Section */}
         <section className="hero-section">
           <div className="hero-content">
-            <h1 className="hero-title">Turn Your Green Assets Into Verified Carbon Credits</h1>
-            <p className="hero-subtitle">Plant trees, verify land, earn tradable carbon credits through AI-powered verification.</p>
+            <h1 className="hero-title" style={{color:"black"}}>Turn Your Green Assets Into Verified Carbon Credits</h1>
+            <p className="hero-subtitle" style={{color:"black"}}>Plant trees, verify land, earn tradable carbon credits through AI-powered verification.</p>
             <div className="banner-placeholder">
-              <img style={{height: "18rem", width:"40rem", borderRadius:"2rem"}} src="/banner.png" alt=''></img>
+              <img 
+                style={{
+                  width: "100%",
+                  maxWidth: "1000px", 
+                  height: "auto", 
+                  borderStyle: "solid",
+                  borderColor: "black",
+                  borderWidth: "2px",
+                  borderRadius: "2rem",
+                  objectFit: "cover",
+                  display: "block",
+                  margin: "0 auto"
+                }} 
+                src="/banner.png" 
+                alt="CarbonCoin Banner"
+              />
             </div>
             <Link href="/signup" className="cta-button">
               Get Started
@@ -68,17 +83,17 @@ const HomePage = () => {
             <div className="features-grid" style={{marginTop: "3rem", marginBottom:"3rem"}}>
               <div className="feature-card">
                 <h3 className="feature-title">Democratization</h3>
-                <p className="feature-desc">Making carbon markets accessible to individuals and small communities</p>
+                <p className="feature-desc" style={{color: "black"}}>Making carbon markets accessible to individuals and small communities</p>
               </div>
               
               <div className="feature-card">
                 <h3 className="feature-title">Verification via AI & Satellite</h3>
-                <p className="feature-desc">Using advanced technology to verify green assets accurately</p>
+                <p className="feature-desc" style={{color: "black"}}>Using advanced technology to verify green assets accurately</p>
               </div>
               
               <div className="feature-card">
                 <h3 className="feature-title">Monetization via Carbon Coins</h3>
-                <p className="feature-desc">Earn tradable carbon credits for your environmental contributions</p>
+                <p className="feature-desc" style={{color: "black"}}>Earn tradable carbon credits for your environmental contributions</p>
               </div>
             </div>
           </div>

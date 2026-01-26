@@ -13,7 +13,7 @@ const PropertyVerificationPage = () => {
         <div className="container">
           <div className="dashboard-container">
             <div className="dashboard-header">
-              <h1 className="dashboard-title">Property Verification</h1>
+              <h1 className="dashboard-title" style={{fontSize: "3rem"}}>Property Verification</h1>
               <p className="dashboard-subtitle">Register and verify your green assets</p>
             </div>
             
@@ -40,7 +40,7 @@ const PropertyVerificationPage = () => {
                 </div>
               </div>
               
-              <div className="dashboard-actions">
+              <div className="dashboard-actions" style={{fontSize: "1rem"}}>
                 <Link href="/dashboard" className="action-button secondary">
                   Back to Dashboard
                 </Link>

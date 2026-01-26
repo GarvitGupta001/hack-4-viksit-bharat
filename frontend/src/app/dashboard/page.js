@@ -67,7 +67,7 @@ const DashboardPage = () => {
       <main className="main-content">
         <div className="dashboard-container">
           <div className="dashboard-header">
-            <h1 className="dashboard-title">Welcome, {user.name}!</h1>
+            <h1 className="dashboard-title" style={{fontSize: "3rem"}}>Welcome, {user.name}!</h1>
             <p className="dashboard-subtitle">Manage your carbon credit portfolio</p>
           </div>
 
@@ -89,16 +89,16 @@ const DashboardPage = () => {
               </div>
             </div>
 
-            <div className="status-text">
+            <div className="status-text" style={{fontSize: "1rem"}}>
               Property verification pending. Upload documents to earn carbon credits.
             </div>
 
-            <div className="dashboard-actions">
+            <div className="dashboard-actions" style={{fontSize: "1rem"}}>
               <Link href="/property-verification" className="action-button primary">
                 Start Property Verification
               </Link>
 
-              <button onClick={handleLogout} className="action-button secondary">
+              <button onClick={handleLogout} className="action-button secondary" style={{fontSize: "1rem"}}>
                 Logout
               </button>
             </div>

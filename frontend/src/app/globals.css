@@ -64,28 +64,57 @@ body {
   position: sticky;
   top: 0;
   z-index: 100;
-  padding: 1rem 0;
+  padding: 1.5rem 0;
+  min-height: 50px;
 }
 
 .nav-container {
-  max-width: 1200px;
+  max-width: 1600px;
   margin: 0 auto;
-  padding: 0 20px;
+  padding: 0 40px;
   display: flex;
   justify-content: space-between;
   align-items: center;
 }
 
 .nav-logo .logo {
-  font-size: 1.8rem;
+  font-size: 2.5rem;
   font-weight: bold;
   color: var(--primary-green);
   text-decoration: none;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.coin-icon-small {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #ffd700 0%, #ffed4e 100%);
+  border: 2px solid #ffb300;
+  display: inline-block;
+  position: relative;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  flex-shrink: 0;
+}
+
+.coin-icon-small::before {
+  content: 'C';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 16px;
+  font-weight: bold;
+  color: #8b6914;
 }
 
 .nav-menu {
   display: flex;
   gap: 2rem;
+  flex: 1;
+  justify-content: center;
 }
 
 .nav-link {
@@ -139,6 +168,78 @@ body {
   background-color: #555;
 }
 
+.coins-btn {
+  background-color: var(--primary-green);
+  color: var(--white);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 600;
+  cursor: default;
+  pointer-events: none;
+}
+
+.coin-symbol {
+  font-size: 1.4rem;
+  line-height: 1;
+  display: inline-block;
+  font-family: "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif;
+}
+
+.coin-icon {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #ffd700 0%, #ffed4e 100%);
+  border: 2px solid #ffb300;
+  display: inline-block;
+  position: relative;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.coin-icon::before {
+  content: 'C';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 12px;
+  font-weight: bold;
+  color: #8b6914;
+}
+
+.coin-count {
+  font-size: 1rem;
+  font-weight: 600;
+  margin-left: 0.3rem;
+}
+
+.home-btn {
+  background-color: var(--primary-green);
+  color: var(--white);
+  font-size: 1.1rem;
+  padding: 0.8rem 1.5rem;
+}
+
+.home-btn:hover {
+  background-color: var(--dark-green);
+  transform: translateY(-2px);
+}
+
+.about-btn {
+  background-color: var(--primary-green);
+  color: var(--white);
+  border: 2px solid var(--primary-green);
+  font-size: 1rem;
+  padding: 0.6rem 1.2rem;
+}
+
+.about-btn:hover {
+  background-color: var(--dark-green);
+  color: var(--white);
+  transform: translateY(-2px);
+}
+
 /* Hero Section */
 .hero-section {
   background: linear-gradient(135deg, var(--light-green), var(--primary-green));
@@ -166,26 +267,80 @@ body {
 }
 
 .banner-placeholder {
-  /* background-color: rgba(255, 255, 255, 0.2); */
-  /* border: 2px dashed rgba(255, 255, 255, 0.5); */
-  height: 300px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin: 2rem auto;
-  border-radius: 12px;
-  max-width: 800px;
+  width: 100vw;
+  position: relative;
+  left: 50%;
+  right: 50%;
+  margin-left: -50vw;
+  margin-right: -50vw;
+  margin-top: 2rem;
+  margin-bottom: 2rem;
+  padding: 0;
+  overflow: hidden;
+}
+
+.banner-wrapper {
+  position: relative;
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  border-radius: 2rem;
+  overflow: hidden;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3),
+              0 10px 30px rgba(46, 125, 50, 0.2),
+              0 0 0 4px rgba(46, 125, 50, 0.1);
+  transition: all 0.4s ease;
+  transform: translateY(0);
+}
+
+.banner-wrapper:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 25px 70px rgba(0, 0, 0, 0.4),
+              0 15px 40px rgba(46, 125, 50, 0.3),
+              0 0 0 4px rgba(46, 125, 50, 0.2);
+}
+
+.banner-image {
+  width: 100%;
+  height: auto;
+  display: block;
+  object-fit: cover;
+  transition: transform 0.5s ease;
+}
+
+.banner-wrapper:hover .banner-image {
+  transform: scale(1.05);
+}
+
+.banner-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(
+    135deg,
+    rgba(46, 125, 50, 0.1) 0%,
+    rgba(76, 175, 80, 0.05) 50%,
+    transparent 100%
+  );
+  pointer-events: none;
+  transition: opacity 0.4s ease;
+}
+
+.banner-wrapper:hover .banner-overlay {
+  opacity: 0.8;
 }
 
 .cta-button {
   display: inline-block;
   background-color: var(--white);
   color: var(--primary-green);
-  padding: 0.8rem 2rem;
+  padding: 1.2rem 3rem;
   border-radius: 9999px;
   text-decoration: none;
   font-weight: bold;
-  font-size: 1.1rem;
+  font-size: 1.4rem;
   transition: var(--transition);
   border: 2px solid var(--white);
 }
@@ -637,5 +792,31 @@ body {
 
   .action-button.secondary {
     width: 100%;
+  }
+
+  .banner-placeholder {
+    left: 0;
+    right: 0;
+    width: 100vw;
+    margin-left: calc(-50vw + 50%);
+    margin-right: calc(-50vw + 50%);
+    margin-top: 1.5rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .banner-wrapper {
+    max-width: 100%;
+    border-radius: 1rem;
+    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.25),
+                0 8px 20px rgba(46, 125, 50, 0.15);
+  }
+
+  .banner-image {
+    height: 300px;
+    object-fit: cover;
+  }
+
+  .banner-wrapper:hover {
+    transform: translateY(-3px);
   }
 }
