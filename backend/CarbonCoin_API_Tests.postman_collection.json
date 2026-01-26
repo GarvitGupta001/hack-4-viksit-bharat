@@ -1,0 +1,487 @@
+{
+  "info": {
+    "_postman_id": "carbon-coin-api-tests-001",
+    "name": "Carbon Coin API Tests",
+    "description": "Comprehensive test suite for Carbon Coin API endpoints",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{seller_token}}"
+      }
+    ]
+  },
+  "item": [
+    {
+      "name": "1. Register Seller",
+      "request": {
+        "method": "POST",
+        "header": [
+          {"key": "Content-Type", "value": "application/json"}
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"email\": \"seller@carbon.com\", \"password\": \"TestSeller123!\", \"name\": \"Carbon Seller\", \"phone\": \"+91-9876543210\", \"type\": \"seller\"}"
+        },
+        "url": {
+          "raw": "http://localhost:3000/api/auth/register",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "3000",
+          "path": ["api", "auth", "register"]
+        }
+      },
+      "event": [
+        {
+          "listen": "tests",
+          "script": {
+            "exec": ["pm.test(\"Register - Status 201\", function () { pm.response.to.have.status(201); }); pm.test(\"Store seller ID\", function () { var jsonData = pm.response.json(); pm.environment.set('seller_id', jsonData.data._id); });"]
+          }
+        }
+      ]
+    },
+    {
+      "name": "2. Login Seller",
+      "request": {
+        "method": "POST",
+        "header": [
+          {"key": "Content-Type", "value": "application/json"}
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"email\": \"seller@carbon.com\", \"password\": \"TestSeller123!\"}"
+        },
+        "url": {
+          "raw": "http://localhost:3000/api/auth/login",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "3000",
+          "path": ["api", "auth", "login"]
+        }
+      },
+      "event": [
+        {
+          "listen": "tests",
+          "script": {
+            "exec": ["pm.test(\"Login - Status 200\", function () { pm.response.to.have.status(200); }); pm.test(\"Store token\", function () { var jsonData = pm.response.json(); pm.environment.set('seller_token', jsonData.token); });"]
+          }
+        }
+      ]
+    },
+    {
+      "name": "3. Register Company",
+      "request": {
+        "method": "POST",
+        "header": [
+          {"key": "Content-Type", "value": "application/json"}
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"email\": \"company@carbon.com\", \"password\": \"TestCompany123!\", \"name\": \"Carbon Company\", \"phone\": \"+91-9876543211\", \"type\": \"company\"}"
+        },
+        "url": {
+          "raw": "http://localhost:3000/api/auth/register",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "3000",
+          "path": ["api", "auth", "register"]
+        }
+      },
+      "event": [
+        {
+          "listen": "tests",
+          "script": {
+            "exec": ["pm.test(\"Register company - Status 201\", function () { pm.response.to.have.status(201); }); pm.test(\"Store company ID\", function () { var jsonData = pm.response.json(); pm.environment.set('company_id', jsonData.data._id); });"]
+          }
+        }
+      ]
+    },
+    {
+      "name": "4. Get Balance",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:3000/api/carbon-coins/balance",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "3000",
+          "path": ["api", "carbon-coins", "balance"]
+        }
+      },
+      "event": [
+        {
+          "listen": "tests",
+          "script": {
+            "exec": ["pm.test(\"Get balance - Status 200\", function () { pm.response.to.have.status(200); }); pm.test(\"Has balance data\", function () { var jsonData = pm.response.json(); pm.expect(jsonData.data).to.have.property('amount'); });"]
+          }
+        }
+      ]
+    },
+    {
+      "name": "5. Get Balance No Auth (Error)",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:3000/api/carbon-coins/balance",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "3000",
+          "path": ["api", "carbon-coins", "balance"]
+        }
+      },
+      "event": [
+        {
+          "listen": "tests",
+          "script": {
+            "exec": ["pm.test(\"No auth - Status 401\", function () { pm.response.to.have.status(401); });"]
+          }
+        }
+      ]
+    },
+    {
+      "name": "6. Get Transaction History",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:3000/api/carbon-coins/history",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "3000",
+          "path": ["api", "carbon-coins", "history"]
+        }
+      },
+      "event": [
+        {
+          "listen": "tests",
+          "script": {
+            "exec": ["pm.test(\"Get history - Status 200\", function () { pm.response.to.have.status(200); }); pm.test(\"Has history array\", function () { var jsonData = pm.response.json(); pm.expect(jsonData.data).to.have.property('history'); });"]
+          }
+        }
+      ]
+    },
+    {
+      "name": "7. Get History With Pagination",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:3000/api/carbon-coins/history?page=1&limit=10",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "3000",
+          "path": ["api", "carbon-coins", "history"],
+          "query": [
+            {"key": "page", "value": "1"},
+            {"key": "limit", "value": "10"}
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "tests",
+          "script": {
+            "exec": ["pm.test(\"Pagination - Status 200\", function () { pm.response.to.have.status(200); });"]
+          }
+        }
+      ]
+    },
+    {
+      "name": "8. Get History Page 2",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:3000/api/carbon-coins/history?page=2&limit=5",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "3000",
+          "path": ["api", "carbon-coins", "history"],
+          "query": [
+            {"key": "page", "value": "2"},
+            {"key": "limit", "value": "5"}
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "tests",
+          "script": {
+            "exec": ["pm.test(\"Page 2 - Status 200\", function () { pm.response.to.have.status(200); });"]
+          }
+        }
+      ]
+    },
+    {
+      "name": "9. Transfer Coins Success",
+      "request": {
+        "method": "POST",
+        "header": [
+          {"key": "Content-Type", "value": "application/json"}
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"toUserId\": \"{{company_id}}\", \"amount\": 50}"
+        },
+        "url": {
+          "raw": "http://localhost:3000/api/carbon-coins/transfer",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "3000",
+          "path": ["api", "carbon-coins", "transfer"]
+        }
+      },
+      "event": [
+        {
+          "listen": "tests",
+          "script": {
+            "exec": ["pm.test(\"Transfer - Status 200\", function () { pm.response.to.have.status(200); }); pm.test(\"Transfer success\", function () { var jsonData = pm.response.json(); pm.expect(jsonData.success).to.eql(true); });"]
+          }
+        }
+      ]
+    },
+    {
+      "name": "10. Transfer No Amount (Error)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {"key": "Content-Type", "value": "application/json"}
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"toUserId\": \"{{company_id}}\"}"
+        },
+        "url": {
+          "raw": "http://localhost:3000/api/carbon-coins/transfer",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "3000",
+          "path": ["api", "carbon-coins", "transfer"]
+        }
+      },
+      "event": [
+        {
+          "listen": "tests",
+          "script": {
+            "exec": ["pm.test(\"No amount - Status 400\", function () { pm.response.to.have.status(400); });"]
+          }
+        }
+      ]
+    },
+    {
+      "name": "11. Transfer No UserId (Error)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {"key": "Content-Type", "value": "application/json"}
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"amount\": 50}"
+        },
+        "url": {
+          "raw": "http://localhost:3000/api/carbon-coins/transfer",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "3000",
+          "path": ["api", "carbon-coins", "transfer"]
+        }
+      },
+      "event": [
+        {
+          "listen": "tests",
+          "script": {
+            "exec": ["pm.test(\"No UserId - Status 400\", function () { pm.response.to.have.status(400); });"]
+          }
+        }
+      ]
+    },
+    {
+      "name": "12. Transfer No Auth (Error)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {"key": "Content-Type", "value": "application/json"}
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"toUserId\": \"123\", \"amount\": 50}"
+        },
+        "url": {
+          "raw": "http://localhost:3000/api/carbon-coins/transfer",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "3000",
+          "path": ["api", "carbon-coins", "transfer"]
+        }
+      },
+      "event": [
+        {
+          "listen": "tests",
+          "script": {
+            "exec": ["pm.test(\"No auth - Status 401\", function () { pm.response.to.have.status(401); });"]
+          }
+        }
+      ]
+    },
+    {
+      "name": "13. Get Leaderboard",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:3000/api/carbon-coins/leaderboard",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "3000",
+          "path": ["api", "carbon-coins", "leaderboard"]
+        }
+      },
+      "event": [
+        {
+          "listen": "tests",
+          "script": {
+            "exec": ["pm.test(\"Leaderboard - Status 200\", function () { pm.response.to.have.status(200); }); pm.test(\"Has leaderboard array\", function () { var jsonData = pm.response.json(); pm.expect(jsonData.data.leaderboard).to.be.an('array'); });"]
+          }
+        }
+      ]
+    },
+    {
+      "name": "14. Leaderboard With Pagination",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:3000/api/carbon-coins/leaderboard?page=1&limit=5",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "3000",
+          "path": ["api", "carbon-coins", "leaderboard"],
+          "query": [
+            {"key": "page", "value": "1"},
+            {"key": "limit", "value": "5"}
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "tests",
+          "script": {
+            "exec": ["pm.test(\"Leaderboard pagination - Status 200\", function () { pm.response.to.have.status(200); });"]
+          }
+        }
+      ]
+    },
+    {
+      "name": "15. Get Marketplace Stats",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:3000/api/carbon-coins/stats",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "3000",
+          "path": ["api", "carbon-coins", "stats"]
+        }
+      },
+      "event": [
+        {
+          "listen": "tests",
+          "script": {
+            "exec": ["pm.test(\"Stats - Status 200\", function () { pm.response.to.have.status(200); }); pm.test(\"Has stats data\", function () { var jsonData = pm.response.json(); pm.expect(jsonData.data).to.have.property('totalCoinsInCirculation'); pm.expect(jsonData.data).to.have.property('totalSellers'); });"]
+          }
+        }
+      ]
+    },
+    {
+      "name": "16. Stats Has Company Count",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:3000/api/carbon-coins/stats",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "3000",
+          "path": ["api", "carbon-coins", "stats"]
+        }
+      },
+      "event": [
+        {
+          "listen": "tests",
+          "script": {
+            "exec": ["pm.test(\"Stats complete - Status 200\", function () { pm.response.to.have.status(200); }); pm.test(\"Has companies count\", function () { var jsonData = pm.response.json(); pm.expect(jsonData.data).to.have.property('totalCompanies'); });"]
+          }
+        }
+      ]
+    },
+    {
+      "name": "17. Negative Transfer Amount (Error)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {"key": "Content-Type", "value": "application/json"}
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"toUserId\": \"{{company_id}}\", \"amount\": -50}"
+        },
+        "url": {
+          "raw": "http://localhost:3000/api/carbon-coins/transfer",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "3000",
+          "path": ["api", "carbon-coins", "transfer"]
+        }
+      },
+      "event": [
+        {
+          "listen": "tests",
+          "script": {
+            "exec": ["pm.test(\"Negative amount - Error\", function () { pm.response.to.have.status([400, 500]); });"]
+          }
+        }
+      ]
+    },
+    {
+      "name": "18. Zero Transfer Amount (Error)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {"key": "Content-Type", "value": "application/json"}
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"toUserId\": \"{{company_id}}\", \"amount\": 0}"
+        },
+        "url": {
+          "raw": "http://localhost:3000/api/carbon-coins/transfer",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "3000",
+          "path": ["api", "carbon-coins", "transfer"]
+        }
+      },
+      "event": [
+        {
+          "listen": "tests",
+          "script": {
+            "exec": ["pm.test(\"Zero amount - Error\", function () { pm.response.to.have.status([400, 500]); });"]
+          }
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {"key": "base_url", "value": "http://localhost:3000"},
+    {"key": "seller_token", "value": ""},
+    {"key": "seller_id", "value": ""},
+    {"key": "company_id", "value": ""}
+  ]
+}
