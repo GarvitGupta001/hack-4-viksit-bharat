@@ -1,0 +1,512 @@
+{
+	"info": {
+		"name": "Carbon Credit Marketplace API",
+		"description": "Complete API testing collection with automated token management and response validation",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Health Check",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test(\"Response has success message\", function () {",
+							"    var jsonData = pm.response.json();",
+							"    pm.expect(jsonData.success).to.eql(true);",
+							"    pm.expect(jsonData.message).to.include(\"running\");",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/",
+					"protocol": "http",
+					"host": ["localhost"],
+					"port": "3000"
+				}
+			}
+		},
+		{
+			"name": "Authentication",
+			"item": [
+				{
+					"name": "Register User",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"// Generate unique email for testing",
+									"pm.environment.set(\"test_email\", \"user\" + Date.now() + \"@example.com\");",
+									"pm.environment.set(\"test_password\", \"Test@1234\");",
+									"pm.environment.set(\"test_name\", \"Test User\");"
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 201 - Created\", function () {",
+									"    pm.response.to.have.status(201);",
+									"});",
+									"",
+									"pm.test(\"Response has success message\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.success).to.eql(true);",
+									"    pm.expect(jsonData.message).to.include(\"registered\");",
+									"});",
+									"",
+									"pm.test(\"Response contains user data\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.data).to.have.property('_id');",
+									"    pm.expect(jsonData.data).to.have.property('email');",
+									"    pm.expect(jsonData.data.email).to.eql(pm.environment.get('test_email'));",
+									"});",
+									"",
+									"// Save user ID for later use",
+									"var jsonData = pm.response.json();",
+									"pm.environment.set(\"user_id\", jsonData.data._id);"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"{{test_email}}\",\n  \"password\": \"{{test_password}}\",\n  \"name\": \"{{test_name}}\",\n  \"userType\": \"individual\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/auth/register",
+							"protocol": "http",
+							"host": ["localhost"],
+							"port": "3000",
+							"path": ["api", "auth", "register"]
+						}
+					}
+				},
+				{
+					"name": "Login",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Response has success message\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.success).to.eql(true);",
+									"    pm.expect(jsonData.message).to.include(\"successful\");",
+									"});",
+									"",
+									"pm.test(\"Response contains token\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.data).to.have.property('token');",
+									"    pm.expect(jsonData.data.token).to.be.a('string');",
+									"});",
+									"",
+									"// Auto-save token for subsequent requests",
+									"var jsonData = pm.response.json();",
+									"pm.environment.set(\"auth_token\", jsonData.data.token);",
+									"pm.environment.set(\"auth_user_id\", jsonData.data.user._id);"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"{{test_email}}\",\n  \"password\": \"{{test_password}}\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/auth/login",
+							"protocol": "http",
+							"host": ["localhost"],
+							"port": "3000",
+							"path": ["api", "auth", "login"]
+						}
+					}
+				},
+				{
+					"name": "Get Profile",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Response contains user profile\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.success).to.eql(true);",
+									"    pm.expect(jsonData.data).to.have.property('_id');",
+									"    pm.expect(jsonData.data).to.have.property('email');",
+									"    pm.expect(jsonData.data).to.have.property('name');",
+									"});",
+									"",
+									"pm.test(\"Email matches logged-in user\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.data.email).to.eql(pm.environment.get('test_email'));",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{auth_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/auth/profile",
+							"protocol": "http",
+							"host": ["localhost"],
+							"port": "3000",
+							"path": ["api", "auth", "profile"]
+						}
+					}
+				},
+				{
+					"name": "Update Profile",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"pm.environment.set(\"updated_name\", \"Updated User Name\");",
+									"pm.environment.set(\"updated_bio\", \"This is my test bio\");"
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Profile updated successfully\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.success).to.eql(true);",
+									"    pm.expect(jsonData.message).to.include(\"updated\");",
+									"});",
+									"",
+									"pm.test(\"Updated fields are reflected\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.data.name).to.eql(pm.environment.get('updated_name'));",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{auth_token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"{{updated_name}}\",\n  \"bio\": \"{{updated_bio}}\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/auth/profile",
+							"protocol": "http",
+							"host": ["localhost"],
+							"port": "3000",
+							"path": ["api", "auth", "profile"]
+						}
+					}
+				},
+				{
+					"name": "Logout",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Logout successful\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.success).to.eql(true);",
+									"    pm.expect(jsonData.message).to.include(\"Logout\");",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{auth_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/auth/logout",
+							"protocol": "http",
+							"host": ["localhost"],
+							"port": "3000",
+							"path": ["api", "auth", "logout"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Error Test Cases",
+			"item": [
+				{
+					"name": "Login - Missing Password",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 400 - Bad Request\", function () {",
+									"    pm.response.to.have.status(400);",
+									"});",
+									"",
+									"pm.test(\"Error message indicates missing field\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.success).to.eql(false);",
+									"    pm.expect(jsonData.message).to.be.a('string');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"test@example.com\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/auth/login",
+							"protocol": "http",
+							"host": ["localhost"],
+							"port": "3000",
+							"path": ["api", "auth", "login"]
+						}
+					}
+				},
+				{
+					"name": "Register - Invalid Email",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Request rejected with error\", function () {",
+									"    pm.response.to.have.status.oneOf([400, 422]);",
+									"});",
+									"",
+									"pm.test(\"Error response is valid\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.success).to.eql(false);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"invalid-email-format\",\n  \"password\": \"Test@1234\",\n  \"name\": \"Test User\",\n  \"userType\": \"individual\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/auth/register",
+							"protocol": "http",
+							"host": ["localhost"],
+							"port": "3000",
+							"path": ["api", "auth", "register"]
+						}
+					}
+				},
+				{
+					"name": "Get Profile - No Token",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 401 - Unauthorized\", function () {",
+									"    pm.response.to.have.status(401);",
+									"});",
+									"",
+									"pm.test(\"Error indicates authentication required\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.success).to.eql(false);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/auth/profile",
+							"protocol": "http",
+							"host": ["localhost"],
+							"port": "3000",
+							"path": ["api", "auth", "profile"]
+						}
+					}
+				},
+				{
+					"name": "Get Profile - Invalid Token",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 401 - Unauthorized\", function () {",
+									"    pm.response.to.have.status(401);",
+									"});",
+									"",
+									"pm.test(\"Invalid token rejected\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.success).to.eql(false);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer invalid_token_12345"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/auth/profile",
+							"protocol": "http",
+							"host": ["localhost"],
+							"port": "3000",
+							"path": ["api", "auth", "profile"]
+						}
+					}
+				}
+			]
+		}
+	],
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "http://localhost:3000",
+			"type": "string"
+		},
+		{
+			"key": "auth_token",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "auth_user_id",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "test_email",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "test_password",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "test_name",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "user_id",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "updated_name",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "updated_bio",
+			"value": "",
+			"type": "string"
+		}
+	]
+}

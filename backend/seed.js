@@ -1,11 +1,12 @@
+require("dotenv").config();
 const mongoose = require("mongoose");
-const connectDB = require("../config/db");
+const connectDB = require("./utils/db");
 
-const User = require("../models/user.model");
-const Seller = require("../models/seller.model");
-const Company = require("../models/company.model");
-const Property = require("../models/property.model");
-const CarbonCoin = require("../models/carbonCoin.model");
+const User = require("./src/models/user.model");
+const Seller = require("./src/models/seller.model");
+const Company = require("./src/models/company.model");
+const Property = require("./src/models/property.model");
+const CarbonCoin = require("./src/models/carbonCoin.model");
 
 const seedData = async () => {
     await connectDB();
