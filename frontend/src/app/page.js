@@ -1,65 +1,93 @@
-import Image from "next/image";
+'use client';
 
-export default function Home() {
+import Navbar from '../components/Navbar';
+import Footer from '../components/Footer';
+import Link from 'next/link';
+
+const HomePage = () => {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.js file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
+    <div className="page-container">
+      <Navbar />
+      
+      <main className="main-content">
+        {/* Hero Section */}
+        <section className="hero-section">
+          <div className="hero-content">
+            <h1 className="hero-title">Turn Your Green Assets Into Verified Carbon Credits</h1>
+            <p className="hero-subtitle">Plant trees, verify land, earn tradable carbon credits through AI-powered verification.</p>
+            <div className="banner-placeholder">
+              <img style={{height: "18rem", width:"40rem", borderRadius:"2rem"}} src="/banner.png" alt=''></img>
+            </div>
+            <Link href="/signup" className="cta-button">
+              Get Started
+            </Link>
+          </div>
+        </section>
+
+        {/* About Us Section */}
+        <section className="about-section">
+          <div className="container">
+            <h2 className="section-title">About Us</h2>
+            <section id="about" className="about-section">
+  <h2>🌱 About CarbonCoin</h2>
+
+  <p>
+    CarbonCoin is a next-generation <strong>Carbon Capitalization Marketplace</strong> built to turn everyday
+    environmental actions into <strong>verified, tradable value</strong>. We believe the carbon credit economy should
+    not be limited to big institutions—<strong>individuals, small landowners, farmers, and local communities</strong>
+    should be able to participate, earn rewards, and gain recognition for protecting the planet. 🌍✨
+  </p>
+
+  <p>
+    Our platform allows users to register green assets like <strong>trees, land, and plantations</strong>, and submit
+    supporting details for verification. Instead of slow and unreliable manual processes, CarbonCoin uses
+    <strong>AI-powered verification</strong> combined with <strong>satellite imagery</strong> and
+    <strong>geospatial monitoring</strong> to validate assets, reduce fraud, and build long-term trust. 🛰️📍🤖
+  </p>
+
+  <h3>✅ Register → 🛰️ Verify → 🪙 Earn</h3>
+  <p>
+    Once an asset is verified, users receive <strong>Carbon Coins</strong> — digital carbon credits issued based on the
+    verified carbon offset potential of their green assets. This makes sustainability
+    <strong>measurable, transparent, and rewarding</strong> for everyday contributors. 🌿✅
+  </p>
+
+  <p>
+    At the same time, CarbonCoin creates a trusted marketplace for <strong>companies</strong> to access reliable,
+    scalable carbon credits for sustainability goals and compliance. By connecting contributors and buyers on one
+    verified platform, we make the carbon market more <strong>inclusive, credible, and impactful</strong>. 🏢📊✅
+  </p>
+
+  <p>
+    CarbonCoin is not just a marketplace—it’s a movement to democratize climate action. Whether you plant trees, protect
+    land, or support conservation, CarbonCoin helps you turn your green impact into real value while building a greener
+    future for everyone. 🌎💚✨
+  </p>
+</section>
+          
+            <div className="features-grid" style={{marginTop: "3rem", marginBottom:"3rem"}}>
+              <div className="feature-card">
+                <h3 className="feature-title">Democratization</h3>
+                <p className="feature-desc">Making carbon markets accessible to individuals and small communities</p>
+              </div>
+              
+              <div className="feature-card">
+                <h3 className="feature-title">Verification via AI & Satellite</h3>
+                <p className="feature-desc">Using advanced technology to verify green assets accurately</p>
+              </div>
+              
+              <div className="feature-card">
+                <h3 className="feature-title">Monetization via Carbon Coins</h3>
+                <p className="feature-desc">Earn tradable carbon credits for your environmental contributions</p>
+              </div>
+            </div>
+          </div>
+        </section>
       </main>
+      
+      <Footer />
     </div>
   );
-}
+};
+
+export default HomePage;
