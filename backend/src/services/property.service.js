@@ -1,6 +1,7 @@
 const Property = require("../models/property.model");
 const CarbonCoin = require("../models/carbonCoin.model");
 const { uploadToCloudinary } = require("../../utils/cloudinary");
+const satelliteService = require("./satellite.service");
 
 class PropertyService {
     async createProperty(sellerId, propertyData, images) {
@@ -25,7 +26,7 @@ class PropertyService {
         });
 
         // Calculate carbon coins based on area (example: 1 coin per 100 sqft)
-        const coinsEarned = Math.floor(areaInSqFt / 100);
+        let coinsEarned = Math.floor(areaInSqFt / 100);
 
         // Update seller's carbon coin balance
         const carbonCoin = await CarbonCoin.findOne({ ownerId: sellerId });
@@ -37,6 +38,17 @@ class PropertyService {
                 propertyId: property._id,
             });
             await carbonCoin.save();
+        }
+
+        // Trigger satellite verification if boundary coordinates are provided
+        if (boundaryCoordinates && Array.isArray(JSON.parse(boundaryCoordinates)) && JSON.parse(boundaryCoordinates).length >= 3) {
+            try {
+                await satelliteService.initiateSatelliteVerification(property._id, sellerId);
+                console.log(`Satellite verification triggered for property ${property._id}`);
+            } catch (satelliteError) {
+                console.error(`Failed to trigger satellite verification for property ${property._id}:`, satelliteError.message);
+                // Don't fail the property creation if satellite verification fails
+            }
         }
 
         return { property, coinsEarned };

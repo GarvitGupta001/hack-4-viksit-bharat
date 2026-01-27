@@ -11,6 +11,7 @@ const sellerRoutes = require("./src/routes/seller.routes");
 const propertyRoutes = require("./src/routes/property.routes");
 const carbonCoinRoutes = require("./src/routes/carbonCoin.routes");
 const companyRoutes = require("./src/routes/company.routes");
+const satelliteRoutes = require("./src/routes/satellite.routes");
 
 connectDB();
 
@@ -26,6 +27,7 @@ app.use("/api/sellers", sellerRoutes);
 app.use("/api/properties", propertyRoutes);
 app.use("/api/carboncoins", carbonCoinRoutes);
 app.use("/api/companies", companyRoutes);
+app.use("/api/satellite", satelliteRoutes);
 
 
 app.get("/", (req, res) => {

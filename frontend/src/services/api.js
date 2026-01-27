@@ -239,8 +239,22 @@ const apiClient = {
   async getAllCompanies(params = {}) {
     const queryParams = new URLSearchParams(params).toString();
     const endpoint = queryParams ? `/companies/all?${queryParams}` : '/companies/all';
-    
+
     return this.request(endpoint, {
+      method: 'GET',
+    });
+  },
+
+  // Satellite Verification methods
+  async triggerSatelliteVerification(propertyId) {
+    return this.request('/satellite/verify-property', {
+      method: 'POST',
+      body: JSON.stringify({ propertyId }),
+    });
+  },
+
+  async getSatelliteVerificationStatus(propertyId) {
+    return this.request(`/satellite/verification-status/${propertyId}`, {
       method: 'GET',
     });
   },
