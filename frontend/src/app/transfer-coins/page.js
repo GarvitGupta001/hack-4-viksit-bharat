@@ -2,10 +2,10 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import Navbar from '../../components/Navbar';
-import Footer from '../../components/Footer';
+import Navbar from '@/components/Navbar';
+import Footer from '@/components/Footer';
 import Link from 'next/link';
-import apiClient from '../../services/api';
+import apiClient from '@/services/api';
 
 const CarbonCoinTransferPage = () => {
   const router = useRouter();

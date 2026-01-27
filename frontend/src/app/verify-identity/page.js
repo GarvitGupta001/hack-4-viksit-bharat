@@ -2,9 +2,9 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import Navbar from "../../components/Navbar";
-import Footer from "../../components/Footer";
-import apiClient from "../../services/api";
+import Navbar from "@/components/Navbar";
+import Footer from "@/components/Footer";
+import apiClient from "@/services/api";
 
 const VerifyIdentityPage = () => {
     const [aadhaarImage, setAadhaarImage] = useState(null);
