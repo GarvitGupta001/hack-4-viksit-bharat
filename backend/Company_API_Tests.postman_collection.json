@@ -1,0 +1,494 @@
+{
+  "info": {
+    "_postman_id": "company-api-tests-001",
+    "name": "Company API Tests",
+    "description": "Comprehensive test suite for Company API endpoints",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{company_token}}"
+      }
+    ]
+  },
+  "item": [
+    {
+      "name": "1. Register Company Account",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"email\": \"company@example.com\", \"password\": \"TestCompany123!\", \"name\": \"Tech Solutions Ltd\", \"phone\": \"+91-9876543210\", \"type\": \"company\"}"
+        },
+        "url": {
+          "raw": "http://localhost:3000/api/auth/register",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "3000",
+          "path": ["api", "auth", "register"]
+        }
+      },
+      "event": [
+        {
+          "listen": "tests",
+          "script": {
+            "exec": ["pm.test(\"Register - Status 201\", function () { pm.response.to.have.status(201); }); pm.test(\"Register - Has success\", function () { var jsonData = pm.response.json(); pm.expect(jsonData.success).to.eql(true); }); pm.test(\"Store company ID\", function () { var jsonData = pm.response.json(); pm.environment.set('company_id', jsonData.data._id); });"]
+          }
+        }
+      ]
+    },
+    {
+      "name": "2. Login Company",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"email\": \"company@example.com\", \"password\": \"TestCompany123!\"}"
+        },
+        "url": {
+          "raw": "http://localhost:3000/api/auth/login",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "3000",
+          "path": ["api", "auth", "login"]
+        }
+      },
+      "event": [
+        {
+          "listen": "tests",
+          "script": {
+            "exec": ["pm.test(\"Login - Status 200\", function () { pm.response.to.have.status(200); }); pm.test(\"Has token\", function () { var jsonData = pm.response.json(); pm.expect(jsonData.token).to.be.a('string'); }); pm.test(\"Store token\", function () { var jsonData = pm.response.json(); pm.environment.set('company_token', jsonData.token); });"]
+          }
+        }
+      ]
+    },
+    {
+      "name": "3. Upload Both Documents",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "formdata",
+          "formdata": [
+            {"key": "logo", "type": "file", "src": []},
+            {"key": "registrationDoc", "type": "file", "src": []}
+          ]
+        },
+        "url": {
+          "raw": "http://localhost:3000/api/companies/upload-documents",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "3000",
+          "path": ["api", "companies", "upload-documents"]
+        }
+      },
+      "event": [
+        {
+          "listen": "tests",
+          "script": {
+            "exec": ["pm.test(\"Upload both - Status 200\", function () { pm.response.to.have.status(200); }); pm.test(\"Upload - Success\", function () { var jsonData = pm.response.json(); pm.expect(jsonData.success).to.eql(true); });"]
+          }
+        }
+      ]
+    },
+    {
+      "name": "4. Upload Only Logo",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "formdata",
+          "formdata": [
+            {"key": "logo", "type": "file", "src": []}
+          ]
+        },
+        "url": {
+          "raw": "http://localhost:3000/api/companies/upload-documents",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "3000",
+          "path": ["api", "companies", "upload-documents"]
+        }
+      },
+      "event": [
+        {
+          "listen": "tests",
+          "script": {
+            "exec": ["pm.test(\"Upload logo - Status 200\", function () { pm.response.to.have.status(200); });"]
+          }
+        }
+      ]
+    },
+    {
+      "name": "5. Upload Only Registration Doc",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "formdata",
+          "formdata": [
+            {"key": "registrationDoc", "type": "file", "src": []}
+          ]
+        },
+        "url": {
+          "raw": "http://localhost:3000/api/companies/upload-documents",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "3000",
+          "path": ["api", "companies", "upload-documents"]
+        }
+      },
+      "event": [
+        {
+          "listen": "tests",
+          "script": {
+            "exec": ["pm.test(\"Upload doc - Status 200\", function () { pm.response.to.have.status(200); });"]
+          }
+        }
+      ]
+    },
+    {
+      "name": "6. Upload No Files (Error)",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "formdata",
+          "formdata": []
+        },
+        "url": {
+          "raw": "http://localhost:3000/api/companies/upload-documents",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "3000",
+          "path": ["api", "companies", "upload-documents"]
+        }
+      },
+      "event": [
+        {
+          "listen": "tests",
+          "script": {
+            "exec": ["pm.test(\"No files - Status 400\", function () { pm.response.to.have.status(400); });"]
+          }
+        }
+      ]
+    },
+    {
+      "name": "7. Upload No Auth (Error)",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "formdata",
+          "formdata": [
+            {"key": "logo", "type": "file", "src": []}
+          ]
+        },
+        "url": {
+          "raw": "http://localhost:3000/api/companies/upload-documents",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "3000",
+          "path": ["api", "companies", "upload-documents"]
+        }
+      },
+      "event": [
+        {
+          "listen": "tests",
+          "script": {
+            "exec": ["pm.test(\"No auth - Status 401\", function () { pm.response.to.have.status(401); });"]
+          }
+        }
+      ]
+    },
+    {
+      "name": "8. Upload Bad Token (Error)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {"key": "Authorization", "value": "Bearer invalid_token"}
+        ],
+        "body": {
+          "mode": "formdata",
+          "formdata": [
+            {"key": "logo", "type": "file", "src": []}
+          ]
+        },
+        "url": {
+          "raw": "http://localhost:3000/api/companies/upload-documents",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "3000",
+          "path": ["api", "companies", "upload-documents"]
+        }
+      },
+      "event": [
+        {
+          "listen": "tests",
+          "script": {
+            "exec": ["pm.test(\"Bad token - Status 401\", function () { pm.response.to.have.status(401); });"]
+          }
+        }
+      ]
+    },
+    {
+      "name": "9. Get Company Profile",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:3000/api/companies/profile",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "3000",
+          "path": ["api", "companies", "profile"]
+        }
+      },
+      "event": [
+        {
+          "listen": "tests",
+          "script": {
+            "exec": ["pm.test(\"Get profile - Status 200\", function () { pm.response.to.have.status(200); });"]
+          }
+        }
+      ]
+    },
+    {
+      "name": "10. Get Profile No Auth (Error)",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:3000/api/companies/profile",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "3000",
+          "path": ["api", "companies", "profile"]
+        }
+      },
+      "event": [
+        {
+          "listen": "tests",
+          "script": {
+            "exec": ["pm.test(\"Profile no auth - Status 401\", function () { pm.response.to.have.status(401); });"]
+          }
+        }
+      ]
+    },
+    {
+      "name": "11. Get All Companies",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:3000/api/companies/all",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "3000",
+          "path": ["api", "companies", "all"]
+        }
+      },
+      "event": [
+        {
+          "listen": "tests",
+          "script": {
+            "exec": ["pm.test(\"Get all - Status 200\", function () { pm.response.to.have.status(200); });"]
+          }
+        }
+      ]
+    },
+    {
+      "name": "12. Get All With Pagination",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:3000/api/companies/all?page=1&limit=5",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "3000",
+          "path": ["api", "companies", "all"],
+          "query": [
+            {"key": "page", "value": "1"},
+            {"key": "limit", "value": "5"}
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "tests",
+          "script": {
+            "exec": ["pm.test(\"Pagination - Status 200\", function () { pm.response.to.have.status(200); });"]
+          }
+        }
+      ]
+    },
+    {
+      "name": "13. Get Verified Only",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:3000/api/companies/all?verified=true",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "3000",
+          "path": ["api", "companies", "all"],
+          "query": [
+            {"key": "verified", "value": "true"}
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "tests",
+          "script": {
+            "exec": ["pm.test(\"Verified filter - Status 200\", function () { pm.response.to.have.status(200); });"]
+          }
+        }
+      ]
+    },
+    {
+      "name": "14. Get Unverified Only",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:3000/api/companies/all?verified=false",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "3000",
+          "path": ["api", "companies", "all"],
+          "query": [
+            {"key": "verified", "value": "false"}
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "tests",
+          "script": {
+            "exec": ["pm.test(\"Unverified filter - Status 200\", function () { pm.response.to.have.status(200); });"]
+          }
+        }
+      ]
+    },
+    {
+      "name": "15. Get With Custom Limit",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:3000/api/companies/all?limit=3",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "3000",
+          "path": ["api", "companies", "all"],
+          "query": [
+            {"key": "limit", "value": "3"}
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "tests",
+          "script": {
+            "exec": ["pm.test(\"Custom limit - Status 200\", function () { pm.response.to.have.status(200); });"]
+          }
+        }
+      ]
+    },
+    {
+      "name": "16. Get All No Auth (Error)",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:3000/api/companies/all",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "3000",
+          "path": ["api", "companies", "all"]
+        }
+      },
+      "event": [
+        {
+          "listen": "tests",
+          "script": {
+            "exec": ["pm.test(\"All no auth - Status 401\", function () { pm.response.to.have.status(401); });"]
+          }
+        }
+      ]
+    },
+    {
+      "name": "17. Invalid Page",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:3000/api/companies/all?page=99999",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "3000",
+          "path": ["api", "companies", "all"],
+          "query": [
+            {"key": "page", "value": "99999"}
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "tests",
+          "script": {
+            "exec": ["pm.test(\"Invalid page - Status 200\", function () { pm.response.to.have.status(200); });"]
+          }
+        }
+      ]
+    },
+    {
+      "name": "18. Zero Limit",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:3000/api/companies/all?limit=0",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "3000",
+          "path": ["api", "companies", "all"],
+          "query": [
+            {"key": "limit", "value": "0"}
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "tests",
+          "script": {
+            "exec": ["pm.test(\"Zero limit - Response\", function () { pm.response.to.have.status(200); });"]
+          }
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {"key": "base_url", "value": "http://localhost:3000"},
+    {"key": "company_token", "value": ""},
+    {"key": "company_id", "value": ""}
+  ]
+}

@@ -5,6 +5,7 @@ import Navbar from '../../components/Navbar';
 import Footer from '../../components/Footer';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import apiClient from '../../services/api';
 
 const LoginPage = () => {
   const [formData, setFormData] = useState({
@@ -60,14 +61,35 @@ const LoginPage = () => {
 
     setIsLoading(true);
 
-    // Simulate login process
-    setTimeout(() => {
-      setIsLoading(false);
-      // Store login status in localStorage
+    try {
+      // Prepare credentials for API
+      const credentials = {
+        email: formData.emailOrPhone,
+        password: formData.password
+      };
+
+      // Call API to login user
+      const response = await apiClient.login(credentials);
+
+      // Store user info in localStorage
+      localStorage.setItem('token', response.data.token);
+      localStorage.setItem('userName', response.data.user.name);
       localStorage.setItem('isLoggedIn', 'true');
-      // Redirect to identity verification (not dashboard)
-      router.push('/verify-identity');
-    }, 1500);
+
+      // Check if user is already verified
+      if (response.data.user.verified) {
+        // If user is already verified, redirect to dashboard
+        localStorage.setItem('identityVerified', 'true');
+        router.push('/dashboard');
+      } else {
+        // If user is not verified, redirect to identity verification
+        router.push('/verify-identity');
+      }
+    } catch (error) {
+      console.error('Login error:', error);
+      setErrors({ api: error.message || 'Login failed. Please try again.' });
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -78,6 +100,12 @@ const LoginPage = () => {
         <div className="auth-container">
           <div className="auth-form">
             <h1 className="form-title">Log In</h1>
+
+            {errors.api && (
+              <div className="error-message">
+                {errors.api}
+              </div>
+            )}
 
             <form onSubmit={handleSubmit}>
               <div className="form-group">
@@ -90,6 +118,7 @@ const LoginPage = () => {
                   onChange={handleChange}
                   className={errors.emailOrPhone ? 'error' : ''}
                   placeholder="Enter your email or phone number"
+                  disabled={isLoading}
                 />
                 {errors.emailOrPhone && <span className="error-message">{errors.emailOrPhone}</span>}
               </div>
@@ -104,6 +133,7 @@ const LoginPage = () => {
                   onChange={handleChange}
                   className={errors.password ? 'error' : ''}
                   placeholder="Enter your password"
+                  disabled={isLoading}
                 />
                 {errors.password && <span className="error-message">{errors.password}</span>}
               </div>
