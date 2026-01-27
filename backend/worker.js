@@ -7,7 +7,7 @@ const User = require("./src/models/user.model");
 const Seller = require("./src/models/seller.model");
 const connectRedis = require("./utils/redis");
 
-const connection = connectRedis();
+const redisConnection = connectRedis();
 
 const worker = new Worker(
     "seller_verification_queue",
@@ -15,7 +15,7 @@ const worker = new Worker(
         console.log(`Processing job ${job.id} for user ${job.data.userId}`);
         try {
             const response = await axios.post(
-                "http://localhost:8000/api/verify-face",
+                `${process.env.KYC_SERVICE_URL}/api/verify-face`,
                 {
                     userId: job.data.userId,
                 },
@@ -46,7 +46,7 @@ const worker = new Worker(
             throw error; // Rethrow to mark the job as failed
         }
     },
-    { connection },
+    { connection: redisConnection },
 );
 
 worker.on("failed", (job, err) => {

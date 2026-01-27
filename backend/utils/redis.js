@@ -1,8 +1,16 @@
 const Redis = require("ioredis");
 
 const connectRedis = () => {
+    console.log("Connecting to Redis...");
+    console.log(process.env.REDIS_HOST);
+    console.log(process.env.REDIS_PORT);
+    console.log(process.env.REDIS_PASSWORD);
     const connection = new Redis(
-        process.env.REDIS_URL || "redis://127.0.0.1:6379",
+        {
+            host: process.env.REDIS_HOST,
+            port: process.env.REDIS_PORT,
+            password: process.env.REDIS_PASSWORD,
+        },
         {
             maxRetriesPerRequest: null,
         },
