@@ -1,0 +1,6799 @@
+{
+  "collection": {
+    "_": {
+      "postman_id": "property-api-tests-001"
+    },
+    "item": [
+      {
+        "id": "329901fa-4f7c-4786-a33d-188af3ec9706",
+        "name": "1. Register Seller",
+        "request": {
+          "url": {
+            "protocol": "http",
+            "port": "3000",
+            "path": [
+              "api",
+              "auth",
+              "register"
+            ],
+            "host": [
+              "localhost"
+            ],
+            "query": [],
+            "variable": []
+          },
+          "header": [
+            {
+              "key": "Content-Type",
+              "value": "application/json"
+            }
+          ],
+          "method": "POST",
+          "body": {
+            "mode": "raw",
+            "raw": "{\"email\": \"seller@property.com\", \"password\": \"TestSeller123!\", \"name\": \"Property Seller\", \"phone\": \"+91-9876543210\", \"type\": \"seller\"}"
+          }
+        },
+        "response": [],
+        "event": [
+          {
+            "listen": "tests",
+            "script": {
+              "id": "61db0e32-3f9c-4bc9-a256-7a6e993d4fba",
+              "type": "text/javascript",
+              "exec": [
+                "pm.test(\"Register - Status 201\", function () { pm.response.to.have.status(201); }); pm.test(\"Store seller ID\", function () { var jsonData = pm.response.json(); pm.environment.set('seller_id', jsonData.data._id); });"
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "id": "d842c5fe-fc96-4ab2-b56f-e010bf92e41e",
+        "name": "2. Login Seller",
+        "request": {
+          "url": {
+            "protocol": "http",
+            "port": "3000",
+            "path": [
+              "api",
+              "auth",
+              "login"
+            ],
+            "host": [
+              "localhost"
+            ],
+            "query": [],
+            "variable": []
+          },
+          "header": [
+            {
+              "key": "Content-Type",
+              "value": "application/json"
+            }
+          ],
+          "method": "POST",
+          "body": {
+            "mode": "raw",
+            "raw": "{\"email\": \"seller@property.com\", \"password\": \"TestSeller123!\"}"
+          }
+        },
+        "response": [],
+        "event": [
+          {
+            "listen": "tests",
+            "script": {
+              "id": "44615377-74c0-437c-81bb-aa2ee979e175",
+              "type": "text/javascript",
+              "exec": [
+                "pm.test(\"Login - Status 200\", function () { pm.response.to.have.status(200); }); pm.test(\"Store token\", function () { var jsonData = pm.response.json(); pm.environment.set('seller_token', jsonData.token); });"
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "id": "2eb54a3c-d134-46e7-8eb6-db848ad73a8c",
+        "name": "3. Create Property (With Images)",
+        "request": {
+          "url": {
+            "protocol": "http",
+            "port": "3000",
+            "path": [
+              "api",
+              "properties"
+            ],
+            "host": [
+              "localhost"
+            ],
+            "query": [],
+            "variable": []
+          },
+          "method": "POST",
+          "body": {
+            "mode": "formdata",
+            "formdata": [
+              {
+                "key": "title",
+                "value": "Eco-Friendly Green Property",
+                "type": "text"
+              },
+              {
+                "key": "description",
+                "value": "Beautiful green property with solar panels and organic farming",
+                "type": "text"
+              },
+              {
+                "key": "address",
+                "value": "123 Green Street, Eco City, State 12345",
+                "type": "text"
+              },
+              {
+                "key": "boundaryCoordinates",
+                "value": "[{\"lat\": 28.7041, \"lng\": 77.1025}, {\"lat\": 28.7050, \"lng\": 77.1035}]",
+                "type": "text"
+              },
+              {
+                "key": "areaInSqFt",
+                "value": "5000",
+                "type": "text"
+              },
+              {
+                "key": "images",
+                "type": "file",
+                "src": []
+              },
+              {
+                "key": "images",
+                "type": "file",
+                "src": []
+              }
+            ]
+          }
+        },
+        "response": [],
+        "event": [
+          {
+            "listen": "tests",
+            "script": {
+              "id": "ac58f8a5-5e49-44a3-885c-af2a949ab21f",
+              "type": "text/javascript",
+              "exec": [
+                "pm.test(\"Create - Status 201\", function () { pm.response.to.have.status(201); }); pm.test(\"Create - Success\", function () { var jsonData = pm.response.json(); pm.expect(jsonData.success).to.eql(true); }); pm.test(\"Store property ID\", function () { var jsonData = pm.response.json(); pm.environment.set('property_id', jsonData.data.property._id); });"
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "id": "4ba583e6-9ab4-49bb-ae10-9fdbebde1be0",
+        "name": "4. Create Property No Images (Error)",
+        "request": {
+          "url": {
+            "protocol": "http",
+            "port": "3000",
+            "path": [
+              "api",
+              "properties"
+            ],
+            "host": [
+              "localhost"
+            ],
+            "query": [],
+            "variable": []
+          },
+          "method": "POST",
+          "body": {
+            "mode": "formdata",
+            "formdata": [
+              {
+                "key": "title",
+                "value": "Test Property",
+                "type": "text"
+              },
+              {
+                "key": "description",
+                "value": "No images",
+                "type": "text"
+              },
+              {
+                "key": "address",
+                "value": "123 Test St",
+                "type": "text"
+              },
+              {
+                "key": "boundaryCoordinates",
+                "value": "[]",
+                "type": "text"
+              },
+              {
+                "key": "areaInSqFt",
+                "value": "1000",
+                "type": "text"
+              }
+            ]
+          }
+        },
+        "response": [],
+        "event": [
+          {
+            "listen": "tests",
+            "script": {
+              "id": "f1c1fe29-22a8-448d-a415-3467ab1995f8",
+              "type": "text/javascript",
+              "exec": [
+                "pm.test(\"No images - Status 400\", function () { pm.response.to.have.status(400); });"
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "id": "c5ebc5ef-749a-435c-9af0-e128fbf62dbd",
+        "name": "5. Create Property No Auth (Error)",
+        "request": {
+          "url": {
+            "protocol": "http",
+            "port": "3000",
+            "path": [
+              "api",
+              "properties"
+            ],
+            "host": [
+              "localhost"
+            ],
+            "query": [],
+            "variable": []
+          },
+          "method": "POST",
+          "body": {
+            "mode": "formdata",
+            "formdata": [
+              {
+                "key": "title",
+                "value": "Test",
+                "type": "text"
+              },
+              {
+                "key": "images",
+                "type": "file",
+                "src": []
+              }
+            ]
+          }
+        },
+        "response": [],
+        "event": [
+          {
+            "listen": "tests",
+            "script": {
+              "id": "0f5bfaf8-f450-462b-bd12-eb6442577be0",
+              "type": "text/javascript",
+              "exec": [
+                "pm.test(\"No auth - Status 401\", function () { pm.response.to.have.status(401); });"
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "id": "56994a8a-34fd-45ed-844f-2e389d6e13b9",
+        "name": "6. Get All Properties",
+        "request": {
+          "url": {
+            "protocol": "http",
+            "port": "3000",
+            "path": [
+              "api",
+              "properties"
+            ],
+            "host": [
+              "localhost"
+            ],
+            "query": [],
+            "variable": []
+          },
+          "method": "GET"
+        },
+        "response": [],
+        "event": [
+          {
+            "listen": "tests",
+            "script": {
+              "id": "ce96037c-b5ce-4e3e-b12c-b549bb7f81a9",
+              "type": "text/javascript",
+              "exec": [
+                "pm.test(\"Get all - Status 200\", function () { pm.response.to.have.status(200); }); pm.test(\"Has properties array\", function () { var jsonData = pm.response.json(); pm.expect(jsonData.data.properties).to.be.an('array'); });"
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "id": "21c9100e-5019-4e8c-adff-fe70d96a607b",
+        "name": "7. Get All With Pagination",
+        "request": {
+          "url": {
+            "protocol": "http",
+            "port": "3000",
+            "path": [
+              "api",
+              "properties"
+            ],
+            "host": [
+              "localhost"
+            ],
+            "query": [
+              {
+                "key": "page",
+                "value": "1"
+              },
+              {
+                "key": "limit",
+                "value": "5"
+              }
+            ],
+            "variable": []
+          },
+          "method": "GET"
+        },
+        "response": [],
+        "event": [
+          {
+            "listen": "tests",
+            "script": {
+              "id": "ddc1a7bd-77b6-4e51-9a00-9fbdb68a4532",
+              "type": "text/javascript",
+              "exec": [
+                "pm.test(\"Pagination - Status 200\", function () { pm.response.to.have.status(200); });"
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "id": "450fe233-b5b4-4f3d-a7e7-fbb021239bd0",
+        "name": "8. Get All By Seller ID",
+        "request": {
+          "url": {
+            "protocol": "http",
+            "port": "3000",
+            "path": [
+              "api",
+              "properties"
+            ],
+            "host": [
+              "localhost"
+            ],
+            "query": [
+              {
+                "key": "sellerId",
+                "value": "{{seller_id}}"
+              }
+            ],
+            "variable": []
+          },
+          "method": "GET"
+        },
+        "response": [],
+        "event": [
+          {
+            "listen": "tests",
+            "script": {
+              "id": "2c15aaaa-89db-4008-b44b-926f71f9af97",
+              "type": "text/javascript",
+              "exec": [
+                "pm.test(\"By seller - Status 200\", function () { pm.response.to.have.status(200); });"
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "id": "dbc8a0fe-4725-4d5d-b40a-16762be6dbe1",
+        "name": "9. Get My Properties",
+        "request": {
+          "url": {
+            "protocol": "http",
+            "port": "3000",
+            "path": [
+              "api",
+              "properties",
+              "my-properties"
+            ],
+            "host": [
+              "localhost"
+            ],
+            "query": [],
+            "variable": []
+          },
+          "method": "GET"
+        },
+        "response": [],
+        "event": [
+          {
+            "listen": "tests",
+            "script": {
+              "id": "d090f3a4-d459-4e06-917f-cb37f0c3fa76",
+              "type": "text/javascript",
+              "exec": [
+                "pm.test(\"My properties - Status 200\", function () { pm.response.to.have.status(200); });"
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "id": "cf6561b4-fa89-4423-a5d9-e400f30aedf6",
+        "name": "10. Get My Properties No Auth (Error)",
+        "request": {
+          "url": {
+            "protocol": "http",
+            "port": "3000",
+            "path": [
+              "api",
+              "properties",
+              "my-properties"
+            ],
+            "host": [
+              "localhost"
+            ],
+            "query": [],
+            "variable": []
+          },
+          "method": "GET"
+        },
+        "response": [],
+        "event": [
+          {
+            "listen": "tests",
+            "script": {
+              "id": "1be13270-0b73-4efb-9a1f-5923315ea988",
+              "type": "text/javascript",
+              "exec": [
+                "pm.test(\"My props no auth - Status 401\", function () { pm.response.to.have.status(401); });"
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "id": "f31eac76-3346-4bdd-bd54-dce2b4fc0fdb",
+        "name": "11. Get Single Property",
+        "request": {
+          "url": {
+            "protocol": "http",
+            "port": "3000",
+            "path": [
+              "api",
+              "properties",
+              "{{property_id}}"
+            ],
+            "host": [
+              "localhost"
+            ],
+            "query": [],
+            "variable": []
+          },
+          "method": "GET"
+        },
+        "response": [],
+        "event": [
+          {
+            "listen": "tests",
+            "script": {
+              "id": "0b1ee018-dec1-4acf-b9c2-2212ca75d4ab",
+              "type": "text/javascript",
+              "exec": [
+                "pm.test(\"Get single - Status 200\", function () { pm.response.to.have.status(200); });"
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "id": "0a1ae906-ab60-4083-8362-60d82e82acf6",
+        "name": "12. Get Invalid Property ID (Error)",
+        "request": {
+          "url": {
+            "protocol": "http",
+            "port": "3000",
+            "path": [
+              "api",
+              "properties",
+              "invalidid123"
+            ],
+            "host": [
+              "localhost"
+            ],
+            "query": [],
+            "variable": []
+          },
+          "method": "GET"
+        },
+        "response": [],
+        "event": [
+          {
+            "listen": "tests",
+            "script": {
+              "id": "696d1242-7810-4289-a991-b2682de9b6a3",
+              "type": "text/javascript",
+              "exec": [
+                "pm.test(\"Invalid ID - Error\", function () { pm.response.to.have.status([400, 404, 500]); });"
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "id": "5642c014-a23c-4be2-8777-738d14d89fc5",
+        "name": "13. Update Property",
+        "request": {
+          "url": {
+            "protocol": "http",
+            "port": "3000",
+            "path": [
+              "api",
+              "properties",
+              "{{property_id}}"
+            ],
+            "host": [
+              "localhost"
+            ],
+            "query": [],
+            "variable": []
+          },
+          "header": [
+            {
+              "key": "Content-Type",
+              "value": "application/json"
+            }
+          ],
+          "method": "PUT",
+          "body": {
+            "mode": "raw",
+            "raw": "{\"title\": \"Updated Property Title\", \"description\": \"Updated description\", \"areaInSqFt\": 6000}"
+          }
+        },
+        "response": [],
+        "event": [
+          {
+            "listen": "tests",
+            "script": {
+              "id": "7da02b82-54f9-4c91-b069-bd47537b3abd",
+              "type": "text/javascript",
+              "exec": [
+                "pm.test(\"Update - Status 200\", function () { pm.response.to.have.status(200); });"
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "id": "cceff678-95e5-4f4f-8bf6-a59350576314",
+        "name": "14. Update No Auth (Error)",
+        "request": {
+          "url": {
+            "protocol": "http",
+            "port": "3000",
+            "path": [
+              "api",
+              "properties",
+              "{{property_id}}"
+            ],
+            "host": [
+              "localhost"
+            ],
+            "query": [],
+            "variable": []
+          },
+          "header": [
+            {
+              "key": "Content-Type",
+              "value": "application/json"
+            }
+          ],
+          "method": "PUT",
+          "body": {
+            "mode": "raw",
+            "raw": "{\"title\": \"Update\"}"
+          }
+        },
+        "response": [],
+        "event": [
+          {
+            "listen": "tests",
+            "script": {
+              "id": "7371be0b-5c14-4805-b736-3bc2e7386a51",
+              "type": "text/javascript",
+              "exec": [
+                "pm.test(\"Update no auth - Status 401\", function () { pm.response.to.have.status(401); });"
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "id": "0c25c39d-32c5-45b0-bcfc-723a5b007d9a",
+        "name": "15. Delete Property",
+        "request": {
+          "url": {
+            "protocol": "http",
+            "port": "3000",
+            "path": [
+              "api",
+              "properties",
+              "{{property_id}}"
+            ],
+            "host": [
+              "localhost"
+            ],
+            "query": [],
+            "variable": []
+          },
+          "method": "DELETE"
+        },
+        "response": [],
+        "event": [
+          {
+            "listen": "tests",
+            "script": {
+              "id": "b277cd7f-3d21-465f-b3a8-4f719dabdb6e",
+              "type": "text/javascript",
+              "exec": [
+                "pm.test(\"Delete - Status 200\", function () { pm.response.to.have.status(200); });"
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "id": "418baeec-1cd3-4039-856a-04a01a74a0b4",
+        "name": "16. Delete Not Found (Error)",
+        "request": {
+          "url": {
+            "protocol": "http",
+            "port": "3000",
+            "path": [
+              "api",
+              "properties",
+              "invalidid123"
+            ],
+            "host": [
+              "localhost"
+            ],
+            "query": [],
+            "variable": []
+          },
+          "method": "DELETE"
+        },
+        "response": [],
+        "event": [
+          {
+            "listen": "tests",
+            "script": {
+              "id": "2cafb735-fdfe-4fc1-ad7e-e7bcf57754ba",
+              "type": "text/javascript",
+              "exec": [
+                "pm.test(\"Delete invalid - Error\", function () { pm.response.to.have.status([400, 404, 500]); });"
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "id": "61960538-ca25-4c3b-954b-12617f8fa531",
+        "name": "17. Delete No Auth (Error)",
+        "request": {
+          "url": {
+            "protocol": "http",
+            "port": "3000",
+            "path": [
+              "api",
+              "properties",
+              "{{property_id}}"
+            ],
+            "host": [
+              "localhost"
+            ],
+            "query": [],
+            "variable": []
+          },
+          "method": "DELETE"
+        },
+        "response": [],
+        "event": [
+          {
+            "listen": "tests",
+            "script": {
+              "id": "3a9ae69e-cb53-4948-93d6-03616be5b1d0",
+              "type": "text/javascript",
+              "exec": [
+                "pm.test(\"Delete no auth - Status 401\", function () { pm.response.to.have.status(401); });"
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "id": "f76f818c-8db6-4728-8938-185ff7a8cb4c",
+        "name": "18. Large Area Property",
+        "request": {
+          "url": {
+            "protocol": "http",
+            "port": "3000",
+            "path": [
+              "api",
+              "properties"
+            ],
+            "host": [
+              "localhost"
+            ],
+            "query": [],
+            "variable": []
+          },
+          "method": "POST",
+          "body": {
+            "mode": "formdata",
+            "formdata": [
+              {
+                "key": "title",
+                "value": "Large Farm Property",
+                "type": "text"
+              },
+              {
+                "key": "description",
+                "value": "Very large property",
+                "type": "text"
+              },
+              {
+                "key": "address",
+                "value": "Farm Area",
+                "type": "text"
+              },
+              {
+                "key": "boundaryCoordinates",
+                "value": "[]",
+                "type": "text"
+              },
+              {
+                "key": "areaInSqFt",
+                "value": "100000",
+                "type": "text"
+              },
+              {
+                "key": "images",
+                "type": "file",
+                "src": []
+              }
+            ]
+          }
+        },
+        "response": [],
+        "event": [
+          {
+            "listen": "tests",
+            "script": {
+              "id": "23bc988d-f5f2-4b3b-925d-9ecd9f04eb14",
+              "type": "text/javascript",
+              "exec": [
+                "pm.test(\"Large area - Status 201\", function () { pm.response.to.have.status(201); });"
+              ]
+            }
+          }
+        ]
+      }
+    ],
+    "auth": {
+      "type": "bearer",
+      "bearer": [
+        {
+          "type": "any",
+          "value": "{{seller_token}}",
+          "key": "token"
+        }
+      ]
+    },
+    "event": [],
+    "variable": [
+      {
+        "type": "any",
+        "value": "http://localhost:3000",
+        "key": "base_url"
+      },
+      {
+        "type": "any",
+        "value": "",
+        "key": "seller_token"
+      },
+      {
+        "type": "any",
+        "value": "",
+        "key": "seller_id"
+      },
+      {
+        "type": "any",
+        "value": "",
+        "key": "property_id"
+      }
+    ],
+    "info": {
+      "_postman_id": "property-api-tests-001",
+      "name": "Property API Tests",
+      "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+      "description": {
+        "content": "Comprehensive test suite for Property API endpoints",
+        "type": "text/plain"
+      }
+    }
+  },
+  "environment": {
+    "id": "bb1b0f30-8ff0-4106-b63f-b88f3f404f85",
+    "values": []
+  },
+  "globals": {
+    "id": "8631e584-6d2f-4cab-9ffe-6fb40955508b",
+    "values": []
+  },
+  "run": {
+    "stats": {
+      "iterations": {
+        "total": 1,
+        "pending": 0,
+        "failed": 0
+      },
+      "items": {
+        "total": 18,
+        "pending": 0,
+        "failed": 0
+      },
+      "scripts": {
+        "total": 0,
+        "pending": 0,
+        "failed": 0
+      },
+      "prerequests": {
+        "total": 18,
+        "pending": 0,
+        "failed": 0
+      },
+      "requests": {
+        "total": 18,
+        "pending": 0,
+        "failed": 0
+      },
+      "tests": {
+        "total": 18,
+        "pending": 0,
+        "failed": 0
+      },
+      "assertions": {
+        "total": 0,
+        "pending": 0,
+        "failed": 0
+      },
+      "testScripts": {
+        "total": 0,
+        "pending": 0,
+        "failed": 0
+      },
+      "prerequestScripts": {
+        "total": 0,
+        "pending": 0,
+        "failed": 0
+      }
+    },
+    "timings": {
+      "responseAverage": 7.555555555555555,
+      "responseMin": 3,
+      "responseMax": 52,
+      "responseSd": 10.925109825139424,
+      "dnsAverage": 0,
+      "dnsMin": 0,
+      "dnsMax": 0,
+      "dnsSd": 0,
+      "firstByteAverage": 0,
+      "firstByteMin": 0,
+      "firstByteMax": 0,
+      "firstByteSd": 0,
+      "started": 1769467002426,
+      "completed": 1769467004032
+    },
+    "executions": [
+      {
+        "cursor": {
+          "position": 0,
+          "iteration": 0,
+          "length": 18,
+          "cycles": 1,
+          "empty": false,
+          "eof": false,
+          "bof": true,
+          "cr": false,
+          "ref": "55048411-a85c-4d29-aac5-8733bb47c363",
+          "httpRequestId": "37c2e98d-9c1f-4da7-bfa5-8100907d32aa"
+        },
+        "item": {
+          "id": "329901fa-4f7c-4786-a33d-188af3ec9706",
+          "name": "1. Register Seller",
+          "request": {
+            "url": {
+              "protocol": "http",
+              "port": "3000",
+              "path": [
+                "api",
+                "auth",
+                "register"
+              ],
+              "host": [
+                "localhost"
+              ],
+              "query": [],
+              "variable": []
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "method": "POST",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"email\": \"seller@property.com\", \"password\": \"TestSeller123!\", \"name\": \"Property Seller\", \"phone\": \"+91-9876543210\", \"type\": \"seller\"}"
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "tests",
+              "script": {
+                "id": "61db0e32-3f9c-4bc9-a256-7a6e993d4fba",
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Register - Status 201\", function () { pm.response.to.have.status(201); }); pm.test(\"Store seller ID\", function () { var jsonData = pm.response.json(); pm.environment.set('seller_id', jsonData.data._id); });"
+                ]
+              }
+            }
+          ]
+        },
+        "request": {
+          "url": {
+            "protocol": "http",
+            "port": "3000",
+            "path": [
+              "api",
+              "auth",
+              "register"
+            ],
+            "host": [
+              "localhost"
+            ],
+            "query": [],
+            "variable": []
+          },
+          "header": [
+            {
+              "key": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "key": "User-Agent",
+              "value": "PostmanRuntime/7.39.1",
+              "system": true
+            },
+            {
+              "key": "Accept",
+              "value": "*/*",
+              "system": true
+            },
+            {
+              "key": "Cache-Control",
+              "value": "no-cache",
+              "system": true
+            },
+            {
+              "key": "Postman-Token",
+              "value": "6537d120-b084-454d-a0bd-a1677590c298",
+              "system": true
+            },
+            {
+              "key": "Host",
+              "value": "localhost:3000",
+              "system": true
+            },
+            {
+              "key": "Accept-Encoding",
+              "value": "gzip, deflate, br",
+              "system": true
+            },
+            {
+              "key": "Connection",
+              "value": "keep-alive",
+              "system": true
+            },
+            {
+              "key": "Content-Length",
+              "value": "134",
+              "system": true
+            }
+          ],
+          "method": "POST",
+          "body": {
+            "mode": "raw",
+            "raw": "{\"email\": \"seller@property.com\", \"password\": \"TestSeller123!\", \"name\": \"Property Seller\", \"phone\": \"+91-9876543210\", \"type\": \"seller\"}"
+          },
+          "auth": {
+            "type": "bearer",
+            "bearer": [
+              {
+                "type": "any",
+                "value": "",
+                "key": "token"
+              }
+            ]
+          }
+        },
+        "response": {
+          "id": "2cf09688-5df5-4273-80ba-d304ae8b6a13",
+          "status": "Internal Server Error",
+          "code": 500,
+          "header": [
+            {
+              "key": "X-Powered-By",
+              "value": "Express"
+            },
+            {
+              "key": "Access-Control-Allow-Origin",
+              "value": "*"
+            },
+            {
+              "key": "Content-Type",
+              "value": "application/json; charset=utf-8"
+            },
+            {
+              "key": "Content-Length",
+              "value": "74"
+            },
+            {
+              "key": "ETag",
+              "value": "W/\"4a-W/EE8/P4egrR8CF6R7rYuVk9ksk\""
+            },
+            {
+              "key": "Date",
+              "value": "Mon, 26 Jan 2026 22:36:42 GMT"
+            },
+            {
+              "key": "Connection",
+              "value": "keep-alive"
+            },
+            {
+              "key": "Keep-Alive",
+              "value": "timeout=5"
+            }
+          ],
+          "stream": {
+            "type": "Buffer",
+            "data": [
+              123,
+              34,
+              115,
+              117,
+              99,
+              99,
+              101,
+              115,
+              115,
+              34,
+              58,
+              102,
+              97,
+              108,
+              115,
+              101,
+              44,
+              34,
+              109,
+              101,
+              115,
+              115,
+              97,
+              103,
+              101,
+              34,
+              58,
+              34,
+              85,
+              115,
+              101,
+              114,
+              32,
+              119,
+              105,
+              116,
+              104,
+              32,
+              116,
+              104,
+              105,
+              115,
+              32,
+              101,
+              109,
+              97,
+              105,
+              108,
+              32,
+              111,
+              114,
+              32,
+              112,
+              104,
+              111,
+              110,
+              101,
+              32,
+              97,
+              108,
+              114,
+              101,
+              97,
+              100,
+              121,
+              32,
+              101,
+              120,
+              105,
+              115,
+              116,
+              115,
+              34,
+              125
+            ]
+          },
+          "cookie": [],
+          "responseTime": 52,
+          "responseSize": 74
+        },
+        "id": "329901fa-4f7c-4786-a33d-188af3ec9706"
+      },
+      {
+        "cursor": {
+          "ref": "131accbf-9048-4f7c-a4bf-845315a22b6c",
+          "length": 18,
+          "cycles": 1,
+          "position": 1,
+          "iteration": 0,
+          "httpRequestId": "c235ce92-ddde-4757-b075-b395973aba6e"
+        },
+        "item": {
+          "id": "d842c5fe-fc96-4ab2-b56f-e010bf92e41e",
+          "name": "2. Login Seller",
+          "request": {
+            "url": {
+              "protocol": "http",
+              "port": "3000",
+              "path": [
+                "api",
+                "auth",
+                "login"
+              ],
+              "host": [
+                "localhost"
+              ],
+              "query": [],
+              "variable": []
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "method": "POST",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"email\": \"seller@property.com\", \"password\": \"TestSeller123!\"}"
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "tests",
+              "script": {
+                "id": "44615377-74c0-437c-81bb-aa2ee979e175",
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Login - Status 200\", function () { pm.response.to.have.status(200); }); pm.test(\"Store token\", function () { var jsonData = pm.response.json(); pm.environment.set('seller_token', jsonData.token); });"
+                ]
+              }
+            }
+          ]
+        },
+        "request": {
+          "url": {
+            "protocol": "http",
+            "port": "3000",
+            "path": [
+              "api",
+              "auth",
+              "login"
+            ],
+            "host": [
+              "localhost"
+            ],
+            "query": [],
+            "variable": []
+          },
+          "header": [
+            {
+              "key": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "key": "User-Agent",
+              "value": "PostmanRuntime/7.39.1",
+              "system": true
+            },
+            {
+              "key": "Accept",
+              "value": "*/*",
+              "system": true
+            },
+            {
+              "key": "Cache-Control",
+              "value": "no-cache",
+              "system": true
+            },
+            {
+              "key": "Postman-Token",
+              "value": "9a1cb7a9-7a62-483a-ba72-748ed4b89b4f",
+              "system": true
+            },
+            {
+              "key": "Host",
+              "value": "localhost:3000",
+              "system": true
+            },
+            {
+              "key": "Accept-Encoding",
+              "value": "gzip, deflate, br",
+              "system": true
+            },
+            {
+              "key": "Connection",
+              "value": "keep-alive",
+              "system": true
+            },
+            {
+              "key": "Content-Length",
+              "value": "62",
+              "system": true
+            }
+          ],
+          "method": "POST",
+          "body": {
+            "mode": "raw",
+            "raw": "{\"email\": \"seller@property.com\", \"password\": \"TestSeller123!\"}"
+          },
+          "auth": {
+            "type": "bearer",
+            "bearer": [
+              {
+                "type": "any",
+                "value": "",
+                "key": "token"
+              }
+            ]
+          }
+        },
+        "response": {
+          "id": "08b3f600-c46c-4c40-9b65-b097b49a3ab6",
+          "status": "Internal Server Error",
+          "code": 500,
+          "header": [
+            {
+              "key": "X-Powered-By",
+              "value": "Express"
+            },
+            {
+              "key": "Access-Control-Allow-Origin",
+              "value": "*"
+            },
+            {
+              "key": "Content-Type",
+              "value": "application/json; charset=utf-8"
+            },
+            {
+              "key": "Content-Length",
+              "value": "49"
+            },
+            {
+              "key": "ETag",
+              "value": "W/\"31-VmptvJVCxgMiCaKMQdd9IkNBIdc\""
+            },
+            {
+              "key": "Date",
+              "value": "Mon, 26 Jan 2026 22:36:42 GMT"
+            },
+            {
+              "key": "Connection",
+              "value": "keep-alive"
+            },
+            {
+              "key": "Keep-Alive",
+              "value": "timeout=5"
+            }
+          ],
+          "stream": {
+            "type": "Buffer",
+            "data": [
+              123,
+              34,
+              115,
+              117,
+              99,
+              99,
+              101,
+              115,
+              115,
+              34,
+              58,
+              102,
+              97,
+              108,
+              115,
+              101,
+              44,
+              34,
+              109,
+              101,
+              115,
+              115,
+              97,
+              103,
+              101,
+              34,
+              58,
+              34,
+              73,
+              110,
+              118,
+              97,
+              108,
+              105,
+              100,
+              32,
+              99,
+              114,
+              101,
+              100,
+              101,
+              110,
+              116,
+              105,
+              97,
+              108,
+              115,
+              34,
+              125
+            ]
+          },
+          "cookie": [],
+          "responseTime": 9,
+          "responseSize": 49
+        },
+        "id": "d842c5fe-fc96-4ab2-b56f-e010bf92e41e"
+      },
+      {
+        "cursor": {
+          "ref": "2e36a947-8bba-4104-a55b-cb79bb09cc43",
+          "length": 18,
+          "cycles": 1,
+          "position": 2,
+          "iteration": 0,
+          "httpRequestId": "d16f8697-3945-46bb-a18d-798860288dc1"
+        },
+        "item": {
+          "id": "2eb54a3c-d134-46e7-8eb6-db848ad73a8c",
+          "name": "3. Create Property (With Images)",
+          "request": {
+            "url": {
+              "protocol": "http",
+              "port": "3000",
+              "path": [
+                "api",
+                "properties"
+              ],
+              "host": [
+                "localhost"
+              ],
+              "query": [],
+              "variable": []
+            },
+            "method": "POST",
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "title",
+                  "value": "Eco-Friendly Green Property",
+                  "type": "text"
+                },
+                {
+                  "key": "description",
+                  "value": "Beautiful green property with solar panels and organic farming",
+                  "type": "text"
+                },
+                {
+                  "key": "address",
+                  "value": "123 Green Street, Eco City, State 12345",
+                  "type": "text"
+                },
+                {
+                  "key": "boundaryCoordinates",
+                  "value": "[{\"lat\": 28.7041, \"lng\": 77.1025}, {\"lat\": 28.7050, \"lng\": 77.1035}]",
+                  "type": "text"
+                },
+                {
+                  "key": "areaInSqFt",
+                  "value": "5000",
+                  "type": "text"
+                },
+                {
+                  "key": "images",
+                  "type": "file",
+                  "src": []
+                },
+                {
+                  "key": "images",
+                  "type": "file",
+                  "src": []
+                }
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "tests",
+              "script": {
+                "id": "ac58f8a5-5e49-44a3-885c-af2a949ab21f",
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Create - Status 201\", function () { pm.response.to.have.status(201); }); pm.test(\"Create - Success\", function () { var jsonData = pm.response.json(); pm.expect(jsonData.success).to.eql(true); }); pm.test(\"Store property ID\", function () { var jsonData = pm.response.json(); pm.environment.set('property_id', jsonData.data.property._id); });"
+                ]
+              }
+            }
+          ]
+        },
+        "request": {
+          "url": {
+            "protocol": "http",
+            "port": "3000",
+            "path": [
+              "api",
+              "properties"
+            ],
+            "host": [
+              "localhost"
+            ],
+            "query": [],
+            "variable": []
+          },
+          "header": [
+            {
+              "key": "User-Agent",
+              "value": "PostmanRuntime/7.39.1",
+              "system": true
+            },
+            {
+              "key": "Accept",
+              "value": "*/*",
+              "system": true
+            },
+            {
+              "key": "Cache-Control",
+              "value": "no-cache",
+              "system": true
+            },
+            {
+              "key": "Postman-Token",
+              "value": "19db18ab-a56f-489a-ac7c-c8dcf2c6e4be",
+              "system": true
+            },
+            {
+              "key": "Host",
+              "value": "localhost:3000",
+              "system": true
+            },
+            {
+              "key": "Accept-Encoding",
+              "value": "gzip, deflate, br",
+              "system": true
+            },
+            {
+              "key": "Connection",
+              "value": "keep-alive",
+              "system": true
+            },
+            {
+              "key": "Content-Length",
+              "value": "1039",
+              "system": true
+            }
+          ],
+          "method": "POST",
+          "body": {
+            "mode": "formdata",
+            "formdata": [
+              {
+                "key": "title",
+                "value": "Eco-Friendly Green Property",
+                "type": "text"
+              },
+              {
+                "key": "description",
+                "value": "Beautiful green property with solar panels and organic farming",
+                "type": "text"
+              },
+              {
+                "key": "address",
+                "value": "123 Green Street, Eco City, State 12345",
+                "type": "text"
+              },
+              {
+                "key": "boundaryCoordinates",
+                "value": "[{\"lat\": 28.7041, \"lng\": 77.1025}, {\"lat\": 28.7050, \"lng\": 77.1035}]",
+                "type": "text"
+              },
+              {
+                "key": "areaInSqFt",
+                "value": "5000",
+                "type": "text"
+              },
+              {
+                "key": "images",
+                "type": "file",
+                "src": [],
+                "fileName": ""
+              },
+              {
+                "key": "images",
+                "type": "file",
+                "src": [],
+                "fileName": ""
+              }
+            ]
+          },
+          "auth": {
+            "type": "bearer",
+            "bearer": [
+              {
+                "type": "any",
+                "value": "",
+                "key": "token"
+              }
+            ]
+          }
+        },
+        "response": {
+          "id": "cf00166d-d924-4ea6-aba3-cd757598ee0c",
+          "status": "Not Found",
+          "code": 404,
+          "header": [
+            {
+              "key": "X-Powered-By",
+              "value": "Express"
+            },
+            {
+              "key": "Access-Control-Allow-Origin",
+              "value": "*"
+            },
+            {
+              "key": "Content-Security-Policy",
+              "value": "default-src 'none'"
+            },
+            {
+              "key": "X-Content-Type-Options",
+              "value": "nosniff"
+            },
+            {
+              "key": "Content-Type",
+              "value": "text/html; charset=utf-8"
+            },
+            {
+              "key": "Content-Length",
+              "value": "154"
+            },
+            {
+              "key": "Date",
+              "value": "Mon, 26 Jan 2026 22:36:42 GMT"
+            },
+            {
+              "key": "Connection",
+              "value": "keep-alive"
+            },
+            {
+              "key": "Keep-Alive",
+              "value": "timeout=5"
+            }
+          ],
+          "stream": {
+            "type": "Buffer",
+            "data": [
+              60,
+              33,
+              68,
+              79,
+              67,
+              84,
+              89,
+              80,
+              69,
+              32,
+              104,
+              116,
+              109,
+              108,
+              62,
+              10,
+              60,
+              104,
+              116,
+              109,
+              108,
+              32,
+              108,
+              97,
+              110,
+              103,
+              61,
+              34,
+              101,
+              110,
+              34,
+              62,
+              10,
+              60,
+              104,
+              101,
+              97,
+              100,
+              62,
+              10,
+              60,
+              109,
+              101,
+              116,
+              97,
+              32,
+              99,
+              104,
+              97,
+              114,
+              115,
+              101,
+              116,
+              61,
+              34,
+              117,
+              116,
+              102,
+              45,
+              56,
+              34,
+              62,
+              10,
+              60,
+              116,
+              105,
+              116,
+              108,
+              101,
+              62,
+              69,
+              114,
+              114,
+              111,
+              114,
+              60,
+              47,
+              116,
+              105,
+              116,
+              108,
+              101,
+              62,
+              10,
+              60,
+              47,
+              104,
+              101,
+              97,
+              100,
+              62,
+              10,
+              60,
+              98,
+              111,
+              100,
+              121,
+              62,
+              10,
+              60,
+              112,
+              114,
+              101,
+              62,
+              67,
+              97,
+              110,
+              110,
+              111,
+              116,
+              32,
+              80,
+              79,
+              83,
+              84,
+              32,
+              47,
+              97,
+              112,
+              105,
+              47,
+              112,
+              114,
+              111,
+              112,
+              101,
+              114,
+              116,
+              105,
+              101,
+              115,
+              60,
+              47,
+              112,
+              114,
+              101,
+              62,
+              10,
+              60,
+              47,
+              98,
+              111,
+              100,
+              121,
+              62,
+              10,
+              60,
+              47,
+              104,
+              116,
+              109,
+              108,
+              62,
+              10
+            ]
+          },
+          "cookie": [],
+          "responseTime": 8,
+          "responseSize": 154
+        },
+        "id": "2eb54a3c-d134-46e7-8eb6-db848ad73a8c"
+      },
+      {
+        "cursor": {
+          "ref": "5fef64b0-2a6c-4aed-b216-de2dd1cc4815",
+          "length": 18,
+          "cycles": 1,
+          "position": 3,
+          "iteration": 0,
+          "httpRequestId": "280a7892-be92-4235-a89e-f721d77a73d2"
+        },
+        "item": {
+          "id": "4ba583e6-9ab4-49bb-ae10-9fdbebde1be0",
+          "name": "4. Create Property No Images (Error)",
+          "request": {
+            "url": {
+              "protocol": "http",
+              "port": "3000",
+              "path": [
+                "api",
+                "properties"
+              ],
+              "host": [
+                "localhost"
+              ],
+              "query": [],
+              "variable": []
+            },
+            "method": "POST",
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "title",
+                  "value": "Test Property",
+                  "type": "text"
+                },
+                {
+                  "key": "description",
+                  "value": "No images",
+                  "type": "text"
+                },
+                {
+                  "key": "address",
+                  "value": "123 Test St",
+                  "type": "text"
+                },
+                {
+                  "key": "boundaryCoordinates",
+                  "value": "[]",
+                  "type": "text"
+                },
+                {
+                  "key": "areaInSqFt",
+                  "value": "1000",
+                  "type": "text"
+                }
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "tests",
+              "script": {
+                "id": "f1c1fe29-22a8-448d-a415-3467ab1995f8",
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"No images - Status 400\", function () { pm.response.to.have.status(400); });"
+                ]
+              }
+            }
+          ]
+        },
+        "request": {
+          "url": {
+            "protocol": "http",
+            "port": "3000",
+            "path": [
+              "api",
+              "properties"
+            ],
+            "host": [
+              "localhost"
+            ],
+            "query": [],
+            "variable": []
+          },
+          "header": [
+            {
+              "key": "User-Agent",
+              "value": "PostmanRuntime/7.39.1",
+              "system": true
+            },
+            {
+              "key": "Accept",
+              "value": "*/*",
+              "system": true
+            },
+            {
+              "key": "Cache-Control",
+              "value": "no-cache",
+              "system": true
+            },
+            {
+              "key": "Postman-Token",
+              "value": "a1d26991-522a-4685-8d57-ce8c0a73a917",
+              "system": true
+            },
+            {
+              "key": "Host",
+              "value": "localhost:3000",
+              "system": true
+            },
+            {
+              "key": "Accept-Encoding",
+              "value": "gzip, deflate, br",
+              "system": true
+            },
+            {
+              "key": "Connection",
+              "value": "keep-alive",
+              "system": true
+            },
+            {
+              "key": "Content-Length",
+              "value": "642",
+              "system": true
+            }
+          ],
+          "method": "POST",
+          "body": {
+            "mode": "formdata",
+            "formdata": [
+              {
+                "key": "title",
+                "value": "Test Property",
+                "type": "text"
+              },
+              {
+                "key": "description",
+                "value": "No images",
+                "type": "text"
+              },
+              {
+                "key": "address",
+                "value": "123 Test St",
+                "type": "text"
+              },
+              {
+                "key": "boundaryCoordinates",
+                "value": "[]",
+                "type": "text"
+              },
+              {
+                "key": "areaInSqFt",
+                "value": "1000",
+                "type": "text"
+              }
+            ]
+          },
+          "auth": {
+            "type": "bearer",
+            "bearer": [
+              {
+                "type": "any",
+                "value": "",
+                "key": "token"
+              }
+            ]
+          }
+        },
+        "response": {
+          "id": "d2a9ab70-2619-4bf7-aa33-e81be02f95bc",
+          "status": "Not Found",
+          "code": 404,
+          "header": [
+            {
+              "key": "X-Powered-By",
+              "value": "Express"
+            },
+            {
+              "key": "Access-Control-Allow-Origin",
+              "value": "*"
+            },
+            {
+              "key": "Content-Security-Policy",
+              "value": "default-src 'none'"
+            },
+            {
+              "key": "X-Content-Type-Options",
+              "value": "nosniff"
+            },
+            {
+              "key": "Content-Type",
+              "value": "text/html; charset=utf-8"
+            },
+            {
+              "key": "Content-Length",
+              "value": "154"
+            },
+            {
+              "key": "Date",
+              "value": "Mon, 26 Jan 2026 22:36:42 GMT"
+            },
+            {
+              "key": "Connection",
+              "value": "keep-alive"
+            },
+            {
+              "key": "Keep-Alive",
+              "value": "timeout=5"
+            }
+          ],
+          "stream": {
+            "type": "Buffer",
+            "data": [
+              60,
+              33,
+              68,
+              79,
+              67,
+              84,
+              89,
+              80,
+              69,
+              32,
+              104,
+              116,
+              109,
+              108,
+              62,
+              10,
+              60,
+              104,
+              116,
+              109,
+              108,
+              32,
+              108,
+              97,
+              110,
+              103,
+              61,
+              34,
+              101,
+              110,
+              34,
+              62,
+              10,
+              60,
+              104,
+              101,
+              97,
+              100,
+              62,
+              10,
+              60,
+              109,
+              101,
+              116,
+              97,
+              32,
+              99,
+              104,
+              97,
+              114,
+              115,
+              101,
+              116,
+              61,
+              34,
+              117,
+              116,
+              102,
+              45,
+              56,
+              34,
+              62,
+              10,
+              60,
+              116,
+              105,
+              116,
+              108,
+              101,
+              62,
+              69,
+              114,
+              114,
+              111,
+              114,
+              60,
+              47,
+              116,
+              105,
+              116,
+              108,
+              101,
+              62,
+              10,
+              60,
+              47,
+              104,
+              101,
+              97,
+              100,
+              62,
+              10,
+              60,
+              98,
+              111,
+              100,
+              121,
+              62,
+              10,
+              60,
+              112,
+              114,
+              101,
+              62,
+              67,
+              97,
+              110,
+              110,
+              111,
+              116,
+              32,
+              80,
+              79,
+              83,
+              84,
+              32,
+              47,
+              97,
+              112,
+              105,
+              47,
+              112,
+              114,
+              111,
+              112,
+              101,
+              114,
+              116,
+              105,
+              101,
+              115,
+              60,
+              47,
+              112,
+              114,
+              101,
+              62,
+              10,
+              60,
+              47,
+              98,
+              111,
+              100,
+              121,
+              62,
+              10,
+              60,
+              47,
+              104,
+              116,
+              109,
+              108,
+              62,
+              10
+            ]
+          },
+          "cookie": [],
+          "responseTime": 4,
+          "responseSize": 154
+        },
+        "id": "4ba583e6-9ab4-49bb-ae10-9fdbebde1be0"
+      },
+      {
+        "cursor": {
+          "ref": "0816c657-aa23-45e3-95be-1453f05ebaae",
+          "length": 18,
+          "cycles": 1,
+          "position": 4,
+          "iteration": 0,
+          "httpRequestId": "69ff99d7-549c-4311-81fa-5c071c0af087"
+        },
+        "item": {
+          "id": "c5ebc5ef-749a-435c-9af0-e128fbf62dbd",
+          "name": "5. Create Property No Auth (Error)",
+          "request": {
+            "url": {
+              "protocol": "http",
+              "port": "3000",
+              "path": [
+                "api",
+                "properties"
+              ],
+              "host": [
+                "localhost"
+              ],
+              "query": [],
+              "variable": []
+            },
+            "method": "POST",
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "title",
+                  "value": "Test",
+                  "type": "text"
+                },
+                {
+                  "key": "images",
+                  "type": "file",
+                  "src": []
+                }
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "tests",
+              "script": {
+                "id": "0f5bfaf8-f450-462b-bd12-eb6442577be0",
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"No auth - Status 401\", function () { pm.response.to.have.status(401); });"
+                ]
+              }
+            }
+          ]
+        },
+        "request": {
+          "url": {
+            "protocol": "http",
+            "port": "3000",
+            "path": [
+              "api",
+              "properties"
+            ],
+            "host": [
+              "localhost"
+            ],
+            "query": [],
+            "variable": []
+          },
+          "header": [
+            {
+              "key": "User-Agent",
+              "value": "PostmanRuntime/7.39.1",
+              "system": true
+            },
+            {
+              "key": "Accept",
+              "value": "*/*",
+              "system": true
+            },
+            {
+              "key": "Cache-Control",
+              "value": "no-cache",
+              "system": true
+            },
+            {
+              "key": "Postman-Token",
+              "value": "eb3e3ab2-41e1-4103-9088-360b3a2e86d3",
+              "system": true
+            },
+            {
+              "key": "Host",
+              "value": "localhost:3000",
+              "system": true
+            },
+            {
+              "key": "Accept-Encoding",
+              "value": "gzip, deflate, br",
+              "system": true
+            },
+            {
+              "key": "Connection",
+              "value": "keep-alive",
+              "system": true
+            },
+            {
+              "key": "Content-Length",
+              "value": "282",
+              "system": true
+            }
+          ],
+          "method": "POST",
+          "body": {
+            "mode": "formdata",
+            "formdata": [
+              {
+                "key": "title",
+                "value": "Test",
+                "type": "text"
+              },
+              {
+                "key": "images",
+                "type": "file",
+                "src": [],
+                "fileName": ""
+              }
+            ]
+          },
+          "auth": {
+            "type": "bearer",
+            "bearer": [
+              {
+                "type": "any",
+                "value": "",
+                "key": "token"
+              }
+            ]
+          }
+        },
+        "response": {
+          "id": "e8b1612e-9fa2-49bb-a28a-a0c408724939",
+          "status": "Not Found",
+          "code": 404,
+          "header": [
+            {
+              "key": "X-Powered-By",
+              "value": "Express"
+            },
+            {
+              "key": "Access-Control-Allow-Origin",
+              "value": "*"
+            },
+            {
+              "key": "Content-Security-Policy",
+              "value": "default-src 'none'"
+            },
+            {
+              "key": "X-Content-Type-Options",
+              "value": "nosniff"
+            },
+            {
+              "key": "Content-Type",
+              "value": "text/html; charset=utf-8"
+            },
+            {
+              "key": "Content-Length",
+              "value": "154"
+            },
+            {
+              "key": "Date",
+              "value": "Mon, 26 Jan 2026 22:36:42 GMT"
+            },
+            {
+              "key": "Connection",
+              "value": "keep-alive"
+            },
+            {
+              "key": "Keep-Alive",
+              "value": "timeout=5"
+            }
+          ],
+          "stream": {
+            "type": "Buffer",
+            "data": [
+              60,
+              33,
+              68,
+              79,
+              67,
+              84,
+              89,
+              80,
+              69,
+              32,
+              104,
+              116,
+              109,
+              108,
+              62,
+              10,
+              60,
+              104,
+              116,
+              109,
+              108,
+              32,
+              108,
+              97,
+              110,
+              103,
+              61,
+              34,
+              101,
+              110,
+              34,
+              62,
+              10,
+              60,
+              104,
+              101,
+              97,
+              100,
+              62,
+              10,
+              60,
+              109,
+              101,
+              116,
+              97,
+              32,
+              99,
+              104,
+              97,
+              114,
+              115,
+              101,
+              116,
+              61,
+              34,
+              117,
+              116,
+              102,
+              45,
+              56,
+              34,
+              62,
+              10,
+              60,
+              116,
+              105,
+              116,
+              108,
+              101,
+              62,
+              69,
+              114,
+              114,
+              111,
+              114,
+              60,
+              47,
+              116,
+              105,
+              116,
+              108,
+              101,
+              62,
+              10,
+              60,
+              47,
+              104,
+              101,
+              97,
+              100,
+              62,
+              10,
+              60,
+              98,
+              111,
+              100,
+              121,
+              62,
+              10,
+              60,
+              112,
+              114,
+              101,
+              62,
+              67,
+              97,
+              110,
+              110,
+              111,
+              116,
+              32,
+              80,
+              79,
+              83,
+              84,
+              32,
+              47,
+              97,
+              112,
+              105,
+              47,
+              112,
+              114,
+              111,
+              112,
+              101,
+              114,
+              116,
+              105,
+              101,
+              115,
+              60,
+              47,
+              112,
+              114,
+              101,
+              62,
+              10,
+              60,
+              47,
+              98,
+              111,
+              100,
+              121,
+              62,
+              10,
+              60,
+              47,
+              104,
+              116,
+              109,
+              108,
+              62,
+              10
+            ]
+          },
+          "cookie": [],
+          "responseTime": 5,
+          "responseSize": 154
+        },
+        "id": "c5ebc5ef-749a-435c-9af0-e128fbf62dbd"
+      },
+      {
+        "cursor": {
+          "ref": "fb454598-7b8c-4efe-b59e-c258a67427bd",
+          "length": 18,
+          "cycles": 1,
+          "position": 5,
+          "iteration": 0,
+          "httpRequestId": "0fa456d8-b8d7-4032-8cd4-0aeb6b9b66b7"
+        },
+        "item": {
+          "id": "56994a8a-34fd-45ed-844f-2e389d6e13b9",
+          "name": "6. Get All Properties",
+          "request": {
+            "url": {
+              "protocol": "http",
+              "port": "3000",
+              "path": [
+                "api",
+                "properties"
+              ],
+              "host": [
+                "localhost"
+              ],
+              "query": [],
+              "variable": []
+            },
+            "method": "GET"
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "tests",
+              "script": {
+                "id": "ce96037c-b5ce-4e3e-b12c-b549bb7f81a9",
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Get all - Status 200\", function () { pm.response.to.have.status(200); }); pm.test(\"Has properties array\", function () { var jsonData = pm.response.json(); pm.expect(jsonData.data.properties).to.be.an('array'); });"
+                ]
+              }
+            }
+          ]
+        },
+        "request": {
+          "url": {
+            "protocol": "http",
+            "port": "3000",
+            "path": [
+              "api",
+              "properties"
+            ],
+            "host": [
+              "localhost"
+            ],
+            "query": [],
+            "variable": []
+          },
+          "header": [
+            {
+              "key": "User-Agent",
+              "value": "PostmanRuntime/7.39.1",
+              "system": true
+            },
+            {
+              "key": "Accept",
+              "value": "*/*",
+              "system": true
+            },
+            {
+              "key": "Cache-Control",
+              "value": "no-cache",
+              "system": true
+            },
+            {
+              "key": "Postman-Token",
+              "value": "751cce01-055f-4a75-a145-03b594a655fc",
+              "system": true
+            },
+            {
+              "key": "Host",
+              "value": "localhost:3000",
+              "system": true
+            },
+            {
+              "key": "Accept-Encoding",
+              "value": "gzip, deflate, br",
+              "system": true
+            },
+            {
+              "key": "Connection",
+              "value": "keep-alive",
+              "system": true
+            }
+          ],
+          "method": "GET",
+          "auth": {
+            "type": "bearer",
+            "bearer": [
+              {
+                "type": "any",
+                "value": "",
+                "key": "token"
+              }
+            ]
+          }
+        },
+        "response": {
+          "id": "eade562e-9440-4b6c-ae68-e628de1e5b3f",
+          "status": "Not Found",
+          "code": 404,
+          "header": [
+            {
+              "key": "X-Powered-By",
+              "value": "Express"
+            },
+            {
+              "key": "Access-Control-Allow-Origin",
+              "value": "*"
+            },
+            {
+              "key": "Content-Security-Policy",
+              "value": "default-src 'none'"
+            },
+            {
+              "key": "X-Content-Type-Options",
+              "value": "nosniff"
+            },
+            {
+              "key": "Content-Type",
+              "value": "text/html; charset=utf-8"
+            },
+            {
+              "key": "Content-Length",
+              "value": "153"
+            },
+            {
+              "key": "Date",
+              "value": "Mon, 26 Jan 2026 22:36:42 GMT"
+            },
+            {
+              "key": "Connection",
+              "value": "keep-alive"
+            },
+            {
+              "key": "Keep-Alive",
+              "value": "timeout=5"
+            }
+          ],
+          "stream": {
+            "type": "Buffer",
+            "data": [
+              60,
+              33,
+              68,
+              79,
+              67,
+              84,
+              89,
+              80,
+              69,
+              32,
+              104,
+              116,
+              109,
+              108,
+              62,
+              10,
+              60,
+              104,
+              116,
+              109,
+              108,
+              32,
+              108,
+              97,
+              110,
+              103,
+              61,
+              34,
+              101,
+              110,
+              34,
+              62,
+              10,
+              60,
+              104,
+              101,
+              97,
+              100,
+              62,
+              10,
+              60,
+              109,
+              101,
+              116,
+              97,
+              32,
+              99,
+              104,
+              97,
+              114,
+              115,
+              101,
+              116,
+              61,
+              34,
+              117,
+              116,
+              102,
+              45,
+              56,
+              34,
+              62,
+              10,
+              60,
+              116,
+              105,
+              116,
+              108,
+              101,
+              62,
+              69,
+              114,
+              114,
+              111,
+              114,
+              60,
+              47,
+              116,
+              105,
+              116,
+              108,
+              101,
+              62,
+              10,
+              60,
+              47,
+              104,
+              101,
+              97,
+              100,
+              62,
+              10,
+              60,
+              98,
+              111,
+              100,
+              121,
+              62,
+              10,
+              60,
+              112,
+              114,
+              101,
+              62,
+              67,
+              97,
+              110,
+              110,
+              111,
+              116,
+              32,
+              71,
+              69,
+              84,
+              32,
+              47,
+              97,
+              112,
+              105,
+              47,
+              112,
+              114,
+              111,
+              112,
+              101,
+              114,
+              116,
+              105,
+              101,
+              115,
+              60,
+              47,
+              112,
+              114,
+              101,
+              62,
+              10,
+              60,
+              47,
+              98,
+              111,
+              100,
+              121,
+              62,
+              10,
+              60,
+              47,
+              104,
+              116,
+              109,
+              108,
+              62,
+              10
+            ]
+          },
+          "cookie": [],
+          "responseTime": 7,
+          "responseSize": 153
+        },
+        "id": "56994a8a-34fd-45ed-844f-2e389d6e13b9"
+      },
+      {
+        "cursor": {
+          "ref": "f57d83e3-8f60-4613-94f8-cb7ad1c3adff",
+          "length": 18,
+          "cycles": 1,
+          "position": 6,
+          "iteration": 0,
+          "httpRequestId": "45641348-d049-4565-b7e6-f6fec203eb8c"
+        },
+        "item": {
+          "id": "21c9100e-5019-4e8c-adff-fe70d96a607b",
+          "name": "7. Get All With Pagination",
+          "request": {
+            "url": {
+              "protocol": "http",
+              "port": "3000",
+              "path": [
+                "api",
+                "properties"
+              ],
+              "host": [
+                "localhost"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "5"
+                }
+              ],
+              "variable": []
+            },
+            "method": "GET"
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "tests",
+              "script": {
+                "id": "ddc1a7bd-77b6-4e51-9a00-9fbdb68a4532",
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Pagination - Status 200\", function () { pm.response.to.have.status(200); });"
+                ]
+              }
+            }
+          ]
+        },
+        "request": {
+          "url": {
+            "protocol": "http",
+            "port": "3000",
+            "path": [
+              "api",
+              "properties"
+            ],
+            "host": [
+              "localhost"
+            ],
+            "query": [
+              {
+                "key": "page",
+                "value": "1"
+              },
+              {
+                "key": "limit",
+                "value": "5"
+              }
+            ],
+            "variable": []
+          },
+          "header": [
+            {
+              "key": "User-Agent",
+              "value": "PostmanRuntime/7.39.1",
+              "system": true
+            },
+            {
+              "key": "Accept",
+              "value": "*/*",
+              "system": true
+            },
+            {
+              "key": "Cache-Control",
+              "value": "no-cache",
+              "system": true
+            },
+            {
+              "key": "Postman-Token",
+              "value": "5be4aa54-0253-45ce-8ef9-af87643d3beb",
+              "system": true
+            },
+            {
+              "key": "Host",
+              "value": "localhost:3000",
+              "system": true
+            },
+            {
+              "key": "Accept-Encoding",
+              "value": "gzip, deflate, br",
+              "system": true
+            },
+            {
+              "key": "Connection",
+              "value": "keep-alive",
+              "system": true
+            }
+          ],
+          "method": "GET",
+          "auth": {
+            "type": "bearer",
+            "bearer": [
+              {
+                "type": "any",
+                "value": "",
+                "key": "token"
+              }
+            ]
+          }
+        },
+        "response": {
+          "id": "23168ffd-3c29-49f4-bda5-0552c7c861d7",
+          "status": "Not Found",
+          "code": 404,
+          "header": [
+            {
+              "key": "X-Powered-By",
+              "value": "Express"
+            },
+            {
+              "key": "Access-Control-Allow-Origin",
+              "value": "*"
+            },
+            {
+              "key": "Content-Security-Policy",
+              "value": "default-src 'none'"
+            },
+            {
+              "key": "X-Content-Type-Options",
+              "value": "nosniff"
+            },
+            {
+              "key": "Content-Type",
+              "value": "text/html; charset=utf-8"
+            },
+            {
+              "key": "Content-Length",
+              "value": "153"
+            },
+            {
+              "key": "Date",
+              "value": "Mon, 26 Jan 2026 22:36:43 GMT"
+            },
+            {
+              "key": "Connection",
+              "value": "keep-alive"
+            },
+            {
+              "key": "Keep-Alive",
+              "value": "timeout=5"
+            }
+          ],
+          "stream": {
+            "type": "Buffer",
+            "data": [
+              60,
+              33,
+              68,
+              79,
+              67,
+              84,
+              89,
+              80,
+              69,
+              32,
+              104,
+              116,
+              109,
+              108,
+              62,
+              10,
+              60,
+              104,
+              116,
+              109,
+              108,
+              32,
+              108,
+              97,
+              110,
+              103,
+              61,
+              34,
+              101,
+              110,
+              34,
+              62,
+              10,
+              60,
+              104,
+              101,
+              97,
+              100,
+              62,
+              10,
+              60,
+              109,
+              101,
+              116,
+              97,
+              32,
+              99,
+              104,
+              97,
+              114,
+              115,
+              101,
+              116,
+              61,
+              34,
+              117,
+              116,
+              102,
+              45,
+              56,
+              34,
+              62,
+              10,
+              60,
+              116,
+              105,
+              116,
+              108,
+              101,
+              62,
+              69,
+              114,
+              114,
+              111,
+              114,
+              60,
+              47,
+              116,
+              105,
+              116,
+              108,
+              101,
+              62,
+              10,
+              60,
+              47,
+              104,
+              101,
+              97,
+              100,
+              62,
+              10,
+              60,
+              98,
+              111,
+              100,
+              121,
+              62,
+              10,
+              60,
+              112,
+              114,
+              101,
+              62,
+              67,
+              97,
+              110,
+              110,
+              111,
+              116,
+              32,
+              71,
+              69,
+              84,
+              32,
+              47,
+              97,
+              112,
+              105,
+              47,
+              112,
+              114,
+              111,
+              112,
+              101,
+              114,
+              116,
+              105,
+              101,
+              115,
+              60,
+              47,
+              112,
+              114,
+              101,
+              62,
+              10,
+              60,
+              47,
+              98,
+              111,
+              100,
+              121,
+              62,
+              10,
+              60,
+              47,
+              104,
+              116,
+              109,
+              108,
+              62,
+              10
+            ]
+          },
+          "cookie": [],
+          "responseTime": 8,
+          "responseSize": 153
+        },
+        "id": "21c9100e-5019-4e8c-adff-fe70d96a607b"
+      },
+      {
+        "cursor": {
+          "ref": "f9f154ea-b62a-4c95-8c6d-c9b0f9ab200f",
+          "length": 18,
+          "cycles": 1,
+          "position": 7,
+          "iteration": 0,
+          "httpRequestId": "afeeec3d-c736-4456-85f7-b6b087889f82"
+        },
+        "item": {
+          "id": "450fe233-b5b4-4f3d-a7e7-fbb021239bd0",
+          "name": "8. Get All By Seller ID",
+          "request": {
+            "url": {
+              "protocol": "http",
+              "port": "3000",
+              "path": [
+                "api",
+                "properties"
+              ],
+              "host": [
+                "localhost"
+              ],
+              "query": [
+                {
+                  "key": "sellerId",
+                  "value": "{{seller_id}}"
+                }
+              ],
+              "variable": []
+            },
+            "method": "GET"
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "tests",
+              "script": {
+                "id": "2c15aaaa-89db-4008-b44b-926f71f9af97",
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"By seller - Status 200\", function () { pm.response.to.have.status(200); });"
+                ]
+              }
+            }
+          ]
+        },
+        "request": {
+          "url": {
+            "protocol": "http",
+            "port": "3000",
+            "path": [
+              "api",
+              "properties"
+            ],
+            "host": [
+              "localhost"
+            ],
+            "query": [
+              {
+                "key": "sellerId",
+                "value": ""
+              }
+            ],
+            "variable": []
+          },
+          "header": [
+            {
+              "key": "User-Agent",
+              "value": "PostmanRuntime/7.39.1",
+              "system": true
+            },
+            {
+              "key": "Accept",
+              "value": "*/*",
+              "system": true
+            },
+            {
+              "key": "Cache-Control",
+              "value": "no-cache",
+              "system": true
+            },
+            {
+              "key": "Postman-Token",
+              "value": "399ae3c2-d684-4396-bdfa-354a6490ea84",
+              "system": true
+            },
+            {
+              "key": "Host",
+              "value": "localhost:3000",
+              "system": true
+            },
+            {
+              "key": "Accept-Encoding",
+              "value": "gzip, deflate, br",
+              "system": true
+            },
+            {
+              "key": "Connection",
+              "value": "keep-alive",
+              "system": true
+            }
+          ],
+          "method": "GET",
+          "auth": {
+            "type": "bearer",
+            "bearer": [
+              {
+                "type": "any",
+                "value": "",
+                "key": "token"
+              }
+            ]
+          }
+        },
+        "response": {
+          "id": "629d3411-b917-447a-9e99-75a9b29054ec",
+          "status": "Not Found",
+          "code": 404,
+          "header": [
+            {
+              "key": "X-Powered-By",
+              "value": "Express"
+            },
+            {
+              "key": "Access-Control-Allow-Origin",
+              "value": "*"
+            },
+            {
+              "key": "Content-Security-Policy",
+              "value": "default-src 'none'"
+            },
+            {
+              "key": "X-Content-Type-Options",
+              "value": "nosniff"
+            },
+            {
+              "key": "Content-Type",
+              "value": "text/html; charset=utf-8"
+            },
+            {
+              "key": "Content-Length",
+              "value": "153"
+            },
+            {
+              "key": "Date",
+              "value": "Mon, 26 Jan 2026 22:36:43 GMT"
+            },
+            {
+              "key": "Connection",
+              "value": "keep-alive"
+            },
+            {
+              "key": "Keep-Alive",
+              "value": "timeout=5"
+            }
+          ],
+          "stream": {
+            "type": "Buffer",
+            "data": [
+              60,
+              33,
+              68,
+              79,
+              67,
+              84,
+              89,
+              80,
+              69,
+              32,
+              104,
+              116,
+              109,
+              108,
+              62,
+              10,
+              60,
+              104,
+              116,
+              109,
+              108,
+              32,
+              108,
+              97,
+              110,
+              103,
+              61,
+              34,
+              101,
+              110,
+              34,
+              62,
+              10,
+              60,
+              104,
+              101,
+              97,
+              100,
+              62,
+              10,
+              60,
+              109,
+              101,
+              116,
+              97,
+              32,
+              99,
+              104,
+              97,
+              114,
+              115,
+              101,
+              116,
+              61,
+              34,
+              117,
+              116,
+              102,
+              45,
+              56,
+              34,
+              62,
+              10,
+              60,
+              116,
+              105,
+              116,
+              108,
+              101,
+              62,
+              69,
+              114,
+              114,
+              111,
+              114,
+              60,
+              47,
+              116,
+              105,
+              116,
+              108,
+              101,
+              62,
+              10,
+              60,
+              47,
+              104,
+              101,
+              97,
+              100,
+              62,
+              10,
+              60,
+              98,
+              111,
+              100,
+              121,
+              62,
+              10,
+              60,
+              112,
+              114,
+              101,
+              62,
+              67,
+              97,
+              110,
+              110,
+              111,
+              116,
+              32,
+              71,
+              69,
+              84,
+              32,
+              47,
+              97,
+              112,
+              105,
+              47,
+              112,
+              114,
+              111,
+              112,
+              101,
+              114,
+              116,
+              105,
+              101,
+              115,
+              60,
+              47,
+              112,
+              114,
+              101,
+              62,
+              10,
+              60,
+              47,
+              98,
+              111,
+              100,
+              121,
+              62,
+              10,
+              60,
+              47,
+              104,
+              116,
+              109,
+              108,
+              62,
+              10
+            ]
+          },
+          "cookie": [],
+          "responseTime": 5,
+          "responseSize": 153
+        },
+        "id": "450fe233-b5b4-4f3d-a7e7-fbb021239bd0"
+      },
+      {
+        "cursor": {
+          "ref": "0558fb13-3693-48c1-800e-c3433867464e",
+          "length": 18,
+          "cycles": 1,
+          "position": 8,
+          "iteration": 0,
+          "httpRequestId": "3fd1a7a1-f363-4aa5-a632-5cde6d6832cf"
+        },
+        "item": {
+          "id": "dbc8a0fe-4725-4d5d-b40a-16762be6dbe1",
+          "name": "9. Get My Properties",
+          "request": {
+            "url": {
+              "protocol": "http",
+              "port": "3000",
+              "path": [
+                "api",
+                "properties",
+                "my-properties"
+              ],
+              "host": [
+                "localhost"
+              ],
+              "query": [],
+              "variable": []
+            },
+            "method": "GET"
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "tests",
+              "script": {
+                "id": "d090f3a4-d459-4e06-917f-cb37f0c3fa76",
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"My properties - Status 200\", function () { pm.response.to.have.status(200); });"
+                ]
+              }
+            }
+          ]
+        },
+        "request": {
+          "url": {
+            "protocol": "http",
+            "port": "3000",
+            "path": [
+              "api",
+              "properties",
+              "my-properties"
+            ],
+            "host": [
+              "localhost"
+            ],
+            "query": [],
+            "variable": []
+          },
+          "header": [
+            {
+              "key": "User-Agent",
+              "value": "PostmanRuntime/7.39.1",
+              "system": true
+            },
+            {
+              "key": "Accept",
+              "value": "*/*",
+              "system": true
+            },
+            {
+              "key": "Cache-Control",
+              "value": "no-cache",
+              "system": true
+            },
+            {
+              "key": "Postman-Token",
+              "value": "31d3ab61-e032-42ac-ab31-c30d094d7430",
+              "system": true
+            },
+            {
+              "key": "Host",
+              "value": "localhost:3000",
+              "system": true
+            },
+            {
+              "key": "Accept-Encoding",
+              "value": "gzip, deflate, br",
+              "system": true
+            },
+            {
+              "key": "Connection",
+              "value": "keep-alive",
+              "system": true
+            }
+          ],
+          "method": "GET",
+          "auth": {
+            "type": "bearer",
+            "bearer": [
+              {
+                "type": "any",
+                "value": "",
+                "key": "token"
+              }
+            ]
+          }
+        },
+        "response": {
+          "id": "0bd936ae-4c3b-4cd6-a3ae-b82156bf872d",
+          "status": "Not Found",
+          "code": 404,
+          "header": [
+            {
+              "key": "X-Powered-By",
+              "value": "Express"
+            },
+            {
+              "key": "Access-Control-Allow-Origin",
+              "value": "*"
+            },
+            {
+              "key": "Content-Security-Policy",
+              "value": "default-src 'none'"
+            },
+            {
+              "key": "X-Content-Type-Options",
+              "value": "nosniff"
+            },
+            {
+              "key": "Content-Type",
+              "value": "text/html; charset=utf-8"
+            },
+            {
+              "key": "Content-Length",
+              "value": "167"
+            },
+            {
+              "key": "Date",
+              "value": "Mon, 26 Jan 2026 22:36:43 GMT"
+            },
+            {
+              "key": "Connection",
+              "value": "keep-alive"
+            },
+            {
+              "key": "Keep-Alive",
+              "value": "timeout=5"
+            }
+          ],
+          "stream": {
+            "type": "Buffer",
+            "data": [
+              60,
+              33,
+              68,
+              79,
+              67,
+              84,
+              89,
+              80,
+              69,
+              32,
+              104,
+              116,
+              109,
+              108,
+              62,
+              10,
+              60,
+              104,
+              116,
+              109,
+              108,
+              32,
+              108,
+              97,
+              110,
+              103,
+              61,
+              34,
+              101,
+              110,
+              34,
+              62,
+              10,
+              60,
+              104,
+              101,
+              97,
+              100,
+              62,
+              10,
+              60,
+              109,
+              101,
+              116,
+              97,
+              32,
+              99,
+              104,
+              97,
+              114,
+              115,
+              101,
+              116,
+              61,
+              34,
+              117,
+              116,
+              102,
+              45,
+              56,
+              34,
+              62,
+              10,
+              60,
+              116,
+              105,
+              116,
+              108,
+              101,
+              62,
+              69,
+              114,
+              114,
+              111,
+              114,
+              60,
+              47,
+              116,
+              105,
+              116,
+              108,
+              101,
+              62,
+              10,
+              60,
+              47,
+              104,
+              101,
+              97,
+              100,
+              62,
+              10,
+              60,
+              98,
+              111,
+              100,
+              121,
+              62,
+              10,
+              60,
+              112,
+              114,
+              101,
+              62,
+              67,
+              97,
+              110,
+              110,
+              111,
+              116,
+              32,
+              71,
+              69,
+              84,
+              32,
+              47,
+              97,
+              112,
+              105,
+              47,
+              112,
+              114,
+              111,
+              112,
+              101,
+              114,
+              116,
+              105,
+              101,
+              115,
+              47,
+              109,
+              121,
+              45,
+              112,
+              114,
+              111,
+              112,
+              101,
+              114,
+              116,
+              105,
+              101,
+              115,
+              60,
+              47,
+              112,
+              114,
+              101,
+              62,
+              10,
+              60,
+              47,
+              98,
+              111,
+              100,
+              121,
+              62,
+              10,
+              60,
+              47,
+              104,
+              116,
+              109,
+              108,
+              62,
+              10
+            ]
+          },
+          "cookie": [],
+          "responseTime": 4,
+          "responseSize": 167
+        },
+        "id": "dbc8a0fe-4725-4d5d-b40a-16762be6dbe1"
+      },
+      {
+        "cursor": {
+          "ref": "eb607b58-e596-4d79-a06f-53090885070d",
+          "length": 18,
+          "cycles": 1,
+          "position": 9,
+          "iteration": 0,
+          "httpRequestId": "4020e9a2-b4dc-44d5-8486-da32b1a7b5d7"
+        },
+        "item": {
+          "id": "cf6561b4-fa89-4423-a5d9-e400f30aedf6",
+          "name": "10. Get My Properties No Auth (Error)",
+          "request": {
+            "url": {
+              "protocol": "http",
+              "port": "3000",
+              "path": [
+                "api",
+                "properties",
+                "my-properties"
+              ],
+              "host": [
+                "localhost"
+              ],
+              "query": [],
+              "variable": []
+            },
+            "method": "GET"
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "tests",
+              "script": {
+                "id": "1be13270-0b73-4efb-9a1f-5923315ea988",
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"My props no auth - Status 401\", function () { pm.response.to.have.status(401); });"
+                ]
+              }
+            }
+          ]
+        },
+        "request": {
+          "url": {
+            "protocol": "http",
+            "port": "3000",
+            "path": [
+              "api",
+              "properties",
+              "my-properties"
+            ],
+            "host": [
+              "localhost"
+            ],
+            "query": [],
+            "variable": []
+          },
+          "header": [
+            {
+              "key": "User-Agent",
+              "value": "PostmanRuntime/7.39.1",
+              "system": true
+            },
+            {
+              "key": "Accept",
+              "value": "*/*",
+              "system": true
+            },
+            {
+              "key": "Cache-Control",
+              "value": "no-cache",
+              "system": true
+            },
+            {
+              "key": "Postman-Token",
+              "value": "80363101-b28d-40b6-89b3-557d6acdf613",
+              "system": true
+            },
+            {
+              "key": "Host",
+              "value": "localhost:3000",
+              "system": true
+            },
+            {
+              "key": "Accept-Encoding",
+              "value": "gzip, deflate, br",
+              "system": true
+            },
+            {
+              "key": "Connection",
+              "value": "keep-alive",
+              "system": true
+            }
+          ],
+          "method": "GET",
+          "auth": {
+            "type": "bearer",
+            "bearer": [
+              {
+                "type": "any",
+                "value": "",
+                "key": "token"
+              }
+            ]
+          }
+        },
+        "response": {
+          "id": "17d8175c-c098-427e-841f-690e8e3251b7",
+          "status": "Not Found",
+          "code": 404,
+          "header": [
+            {
+              "key": "X-Powered-By",
+              "value": "Express"
+            },
+            {
+              "key": "Access-Control-Allow-Origin",
+              "value": "*"
+            },
+            {
+              "key": "Content-Security-Policy",
+              "value": "default-src 'none'"
+            },
+            {
+              "key": "X-Content-Type-Options",
+              "value": "nosniff"
+            },
+            {
+              "key": "Content-Type",
+              "value": "text/html; charset=utf-8"
+            },
+            {
+              "key": "Content-Length",
+              "value": "167"
+            },
+            {
+              "key": "Date",
+              "value": "Mon, 26 Jan 2026 22:36:43 GMT"
+            },
+            {
+              "key": "Connection",
+              "value": "keep-alive"
+            },
+            {
+              "key": "Keep-Alive",
+              "value": "timeout=5"
+            }
+          ],
+          "stream": {
+            "type": "Buffer",
+            "data": [
+              60,
+              33,
+              68,
+              79,
+              67,
+              84,
+              89,
+              80,
+              69,
+              32,
+              104,
+              116,
+              109,
+              108,
+              62,
+              10,
+              60,
+              104,
+              116,
+              109,
+              108,
+              32,
+              108,
+              97,
+              110,
+              103,
+              61,
+              34,
+              101,
+              110,
+              34,
+              62,
+              10,
+              60,
+              104,
+              101,
+              97,
+              100,
+              62,
+              10,
+              60,
+              109,
+              101,
+              116,
+              97,
+              32,
+              99,
+              104,
+              97,
+              114,
+              115,
+              101,
+              116,
+              61,
+              34,
+              117,
+              116,
+              102,
+              45,
+              56,
+              34,
+              62,
+              10,
+              60,
+              116,
+              105,
+              116,
+              108,
+              101,
+              62,
+              69,
+              114,
+              114,
+              111,
+              114,
+              60,
+              47,
+              116,
+              105,
+              116,
+              108,
+              101,
+              62,
+              10,
+              60,
+              47,
+              104,
+              101,
+              97,
+              100,
+              62,
+              10,
+              60,
+              98,
+              111,
+              100,
+              121,
+              62,
+              10,
+              60,
+              112,
+              114,
+              101,
+              62,
+              67,
+              97,
+              110,
+              110,
+              111,
+              116,
+              32,
+              71,
+              69,
+              84,
+              32,
+              47,
+              97,
+              112,
+              105,
+              47,
+              112,
+              114,
+              111,
+              112,
+              101,
+              114,
+              116,
+              105,
+              101,
+              115,
+              47,
+              109,
+              121,
+              45,
+              112,
+              114,
+              111,
+              112,
+              101,
+              114,
+              116,
+              105,
+              101,
+              115,
+              60,
+              47,
+              112,
+              114,
+              101,
+              62,
+              10,
+              60,
+              47,
+              98,
+              111,
+              100,
+              121,
+              62,
+              10,
+              60,
+              47,
+              104,
+              116,
+              109,
+              108,
+              62,
+              10
+            ]
+          },
+          "cookie": [],
+          "responseTime": 3,
+          "responseSize": 167
+        },
+        "id": "cf6561b4-fa89-4423-a5d9-e400f30aedf6"
+      },
+      {
+        "cursor": {
+          "ref": "0cb00f98-c79c-4c4f-bb1a-4b4e2c5280b1",
+          "length": 18,
+          "cycles": 1,
+          "position": 10,
+          "iteration": 0,
+          "httpRequestId": "df0537da-5aa9-49a0-926a-dfaedb19f3a8"
+        },
+        "item": {
+          "id": "f31eac76-3346-4bdd-bd54-dce2b4fc0fdb",
+          "name": "11. Get Single Property",
+          "request": {
+            "url": {
+              "protocol": "http",
+              "port": "3000",
+              "path": [
+                "api",
+                "properties",
+                "{{property_id}}"
+              ],
+              "host": [
+                "localhost"
+              ],
+              "query": [],
+              "variable": []
+            },
+            "method": "GET"
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "tests",
+              "script": {
+                "id": "0b1ee018-dec1-4acf-b9c2-2212ca75d4ab",
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Get single - Status 200\", function () { pm.response.to.have.status(200); });"
+                ]
+              }
+            }
+          ]
+        },
+        "request": {
+          "url": {
+            "protocol": "http",
+            "port": "3000",
+            "path": [
+              "api",
+              "properties",
+              ""
+            ],
+            "host": [
+              "localhost"
+            ],
+            "query": [],
+            "variable": []
+          },
+          "header": [
+            {
+              "key": "User-Agent",
+              "value": "PostmanRuntime/7.39.1",
+              "system": true
+            },
+            {
+              "key": "Accept",
+              "value": "*/*",
+              "system": true
+            },
+            {
+              "key": "Cache-Control",
+              "value": "no-cache",
+              "system": true
+            },
+            {
+              "key": "Postman-Token",
+              "value": "18b7c84a-b9bd-4875-aeb8-797548346440",
+              "system": true
+            },
+            {
+              "key": "Host",
+              "value": "localhost:3000",
+              "system": true
+            },
+            {
+              "key": "Accept-Encoding",
+              "value": "gzip, deflate, br",
+              "system": true
+            },
+            {
+              "key": "Connection",
+              "value": "keep-alive",
+              "system": true
+            }
+          ],
+          "method": "GET",
+          "auth": {
+            "type": "bearer",
+            "bearer": [
+              {
+                "type": "any",
+                "value": "",
+                "key": "token"
+              }
+            ]
+          }
+        },
+        "response": {
+          "id": "8e3d4d36-75a8-45a2-86c4-3110ac9517b4",
+          "status": "Not Found",
+          "code": 404,
+          "header": [
+            {
+              "key": "X-Powered-By",
+              "value": "Express"
+            },
+            {
+              "key": "Access-Control-Allow-Origin",
+              "value": "*"
+            },
+            {
+              "key": "Content-Security-Policy",
+              "value": "default-src 'none'"
+            },
+            {
+              "key": "X-Content-Type-Options",
+              "value": "nosniff"
+            },
+            {
+              "key": "Content-Type",
+              "value": "text/html; charset=utf-8"
+            },
+            {
+              "key": "Content-Length",
+              "value": "154"
+            },
+            {
+              "key": "Date",
+              "value": "Mon, 26 Jan 2026 22:36:43 GMT"
+            },
+            {
+              "key": "Connection",
+              "value": "keep-alive"
+            },
+            {
+              "key": "Keep-Alive",
+              "value": "timeout=5"
+            }
+          ],
+          "stream": {
+            "type": "Buffer",
+            "data": [
+              60,
+              33,
+              68,
+              79,
+              67,
+              84,
+              89,
+              80,
+              69,
+              32,
+              104,
+              116,
+              109,
+              108,
+              62,
+              10,
+              60,
+              104,
+              116,
+              109,
+              108,
+              32,
+              108,
+              97,
+              110,
+              103,
+              61,
+              34,
+              101,
+              110,
+              34,
+              62,
+              10,
+              60,
+              104,
+              101,
+              97,
+              100,
+              62,
+              10,
+              60,
+              109,
+              101,
+              116,
+              97,
+              32,
+              99,
+              104,
+              97,
+              114,
+              115,
+              101,
+              116,
+              61,
+              34,
+              117,
+              116,
+              102,
+              45,
+              56,
+              34,
+              62,
+              10,
+              60,
+              116,
+              105,
+              116,
+              108,
+              101,
+              62,
+              69,
+              114,
+              114,
+              111,
+              114,
+              60,
+              47,
+              116,
+              105,
+              116,
+              108,
+              101,
+              62,
+              10,
+              60,
+              47,
+              104,
+              101,
+              97,
+              100,
+              62,
+              10,
+              60,
+              98,
+              111,
+              100,
+              121,
+              62,
+              10,
+              60,
+              112,
+              114,
+              101,
+              62,
+              67,
+              97,
+              110,
+              110,
+              111,
+              116,
+              32,
+              71,
+              69,
+              84,
+              32,
+              47,
+              97,
+              112,
+              105,
+              47,
+              112,
+              114,
+              111,
+              112,
+              101,
+              114,
+              116,
+              105,
+              101,
+              115,
+              47,
+              60,
+              47,
+              112,
+              114,
+              101,
+              62,
+              10,
+              60,
+              47,
+              98,
+              111,
+              100,
+              121,
+              62,
+              10,
+              60,
+              47,
+              104,
+              116,
+              109,
+              108,
+              62,
+              10
+            ]
+          },
+          "cookie": [],
+          "responseTime": 4,
+          "responseSize": 154
+        },
+        "id": "f31eac76-3346-4bdd-bd54-dce2b4fc0fdb"
+      },
+      {
+        "cursor": {
+          "ref": "eba02c22-c925-4ea8-9178-41d9facbadba",
+          "length": 18,
+          "cycles": 1,
+          "position": 11,
+          "iteration": 0,
+          "httpRequestId": "a4e52eed-8fe8-4832-9694-1d7c9661410b"
+        },
+        "item": {
+          "id": "0a1ae906-ab60-4083-8362-60d82e82acf6",
+          "name": "12. Get Invalid Property ID (Error)",
+          "request": {
+            "url": {
+              "protocol": "http",
+              "port": "3000",
+              "path": [
+                "api",
+                "properties",
+                "invalidid123"
+              ],
+              "host": [
+                "localhost"
+              ],
+              "query": [],
+              "variable": []
+            },
+            "method": "GET"
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "tests",
+              "script": {
+                "id": "696d1242-7810-4289-a991-b2682de9b6a3",
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Invalid ID - Error\", function () { pm.response.to.have.status([400, 404, 500]); });"
+                ]
+              }
+            }
+          ]
+        },
+        "request": {
+          "url": {
+            "protocol": "http",
+            "port": "3000",
+            "path": [
+              "api",
+              "properties",
+              "invalidid123"
+            ],
+            "host": [
+              "localhost"
+            ],
+            "query": [],
+            "variable": []
+          },
+          "header": [
+            {
+              "key": "User-Agent",
+              "value": "PostmanRuntime/7.39.1",
+              "system": true
+            },
+            {
+              "key": "Accept",
+              "value": "*/*",
+              "system": true
+            },
+            {
+              "key": "Cache-Control",
+              "value": "no-cache",
+              "system": true
+            },
+            {
+              "key": "Postman-Token",
+              "value": "320d8d05-9870-444f-bbdc-d59aeb6126fb",
+              "system": true
+            },
+            {
+              "key": "Host",
+              "value": "localhost:3000",
+              "system": true
+            },
+            {
+              "key": "Accept-Encoding",
+              "value": "gzip, deflate, br",
+              "system": true
+            },
+            {
+              "key": "Connection",
+              "value": "keep-alive",
+              "system": true
+            }
+          ],
+          "method": "GET",
+          "auth": {
+            "type": "bearer",
+            "bearer": [
+              {
+                "type": "any",
+                "value": "",
+                "key": "token"
+              }
+            ]
+          }
+        },
+        "response": {
+          "id": "00d0098b-cd72-4ac8-9b35-47eaa2ae0a2d",
+          "status": "Not Found",
+          "code": 404,
+          "header": [
+            {
+              "key": "X-Powered-By",
+              "value": "Express"
+            },
+            {
+              "key": "Access-Control-Allow-Origin",
+              "value": "*"
+            },
+            {
+              "key": "Content-Security-Policy",
+              "value": "default-src 'none'"
+            },
+            {
+              "key": "X-Content-Type-Options",
+              "value": "nosniff"
+            },
+            {
+              "key": "Content-Type",
+              "value": "text/html; charset=utf-8"
+            },
+            {
+              "key": "Content-Length",
+              "value": "166"
+            },
+            {
+              "key": "Date",
+              "value": "Mon, 26 Jan 2026 22:36:43 GMT"
+            },
+            {
+              "key": "Connection",
+              "value": "keep-alive"
+            },
+            {
+              "key": "Keep-Alive",
+              "value": "timeout=5"
+            }
+          ],
+          "stream": {
+            "type": "Buffer",
+            "data": [
+              60,
+              33,
+              68,
+              79,
+              67,
+              84,
+              89,
+              80,
+              69,
+              32,
+              104,
+              116,
+              109,
+              108,
+              62,
+              10,
+              60,
+              104,
+              116,
+              109,
+              108,
+              32,
+              108,
+              97,
+              110,
+              103,
+              61,
+              34,
+              101,
+              110,
+              34,
+              62,
+              10,
+              60,
+              104,
+              101,
+              97,
+              100,
+              62,
+              10,
+              60,
+              109,
+              101,
+              116,
+              97,
+              32,
+              99,
+              104,
+              97,
+              114,
+              115,
+              101,
+              116,
+              61,
+              34,
+              117,
+              116,
+              102,
+              45,
+              56,
+              34,
+              62,
+              10,
+              60,
+              116,
+              105,
+              116,
+              108,
+              101,
+              62,
+              69,
+              114,
+              114,
+              111,
+              114,
+              60,
+              47,
+              116,
+              105,
+              116,
+              108,
+              101,
+              62,
+              10,
+              60,
+              47,
+              104,
+              101,
+              97,
+              100,
+              62,
+              10,
+              60,
+              98,
+              111,
+              100,
+              121,
+              62,
+              10,
+              60,
+              112,
+              114,
+              101,
+              62,
+              67,
+              97,
+              110,
+              110,
+              111,
+              116,
+              32,
+              71,
+              69,
+              84,
+              32,
+              47,
+              97,
+              112,
+              105,
+              47,
+              112,
+              114,
+              111,
+              112,
+              101,
+              114,
+              116,
+              105,
+              101,
+              115,
+              47,
+              105,
+              110,
+              118,
+              97,
+              108,
+              105,
+              100,
+              105,
+              100,
+              49,
+              50,
+              51,
+              60,
+              47,
+              112,
+              114,
+              101,
+              62,
+              10,
+              60,
+              47,
+              98,
+              111,
+              100,
+              121,
+              62,
+              10,
+              60,
+              47,
+              104,
+              116,
+              109,
+              108,
+              62,
+              10
+            ]
+          },
+          "cookie": [],
+          "responseTime": 5,
+          "responseSize": 166
+        },
+        "id": "0a1ae906-ab60-4083-8362-60d82e82acf6"
+      },
+      {
+        "cursor": {
+          "ref": "9858d3c1-f0b7-47b8-9ad3-1ffbd0616bea",
+          "length": 18,
+          "cycles": 1,
+          "position": 12,
+          "iteration": 0,
+          "httpRequestId": "3c2a40d2-67ae-4e40-b376-091dc7bcc89e"
+        },
+        "item": {
+          "id": "5642c014-a23c-4be2-8777-738d14d89fc5",
+          "name": "13. Update Property",
+          "request": {
+            "url": {
+              "protocol": "http",
+              "port": "3000",
+              "path": [
+                "api",
+                "properties",
+                "{{property_id}}"
+              ],
+              "host": [
+                "localhost"
+              ],
+              "query": [],
+              "variable": []
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "method": "PUT",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"title\": \"Updated Property Title\", \"description\": \"Updated description\", \"areaInSqFt\": 6000}"
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "tests",
+              "script": {
+                "id": "7da02b82-54f9-4c91-b069-bd47537b3abd",
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Update - Status 200\", function () { pm.response.to.have.status(200); });"
+                ]
+              }
+            }
+          ]
+        },
+        "request": {
+          "url": {
+            "protocol": "http",
+            "port": "3000",
+            "path": [
+              "api",
+              "properties",
+              ""
+            ],
+            "host": [
+              "localhost"
+            ],
+            "query": [],
+            "variable": []
+          },
+          "header": [
+            {
+              "key": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "key": "User-Agent",
+              "value": "PostmanRuntime/7.39.1",
+              "system": true
+            },
+            {
+              "key": "Accept",
+              "value": "*/*",
+              "system": true
+            },
+            {
+              "key": "Cache-Control",
+              "value": "no-cache",
+              "system": true
+            },
+            {
+              "key": "Postman-Token",
+              "value": "647c1718-4b6f-4f2f-a116-75c906f26d8a",
+              "system": true
+            },
+            {
+              "key": "Host",
+              "value": "localhost:3000",
+              "system": true
+            },
+            {
+              "key": "Accept-Encoding",
+              "value": "gzip, deflate, br",
+              "system": true
+            },
+            {
+              "key": "Connection",
+              "value": "keep-alive",
+              "system": true
+            },
+            {
+              "key": "Content-Length",
+              "value": "93",
+              "system": true
+            }
+          ],
+          "method": "PUT",
+          "body": {
+            "mode": "raw",
+            "raw": "{\"title\": \"Updated Property Title\", \"description\": \"Updated description\", \"areaInSqFt\": 6000}"
+          },
+          "auth": {
+            "type": "bearer",
+            "bearer": [
+              {
+                "type": "any",
+                "value": "",
+                "key": "token"
+              }
+            ]
+          }
+        },
+        "response": {
+          "id": "1059c331-1869-4343-b23d-ad05af88d912",
+          "status": "Not Found",
+          "code": 404,
+          "header": [
+            {
+              "key": "X-Powered-By",
+              "value": "Express"
+            },
+            {
+              "key": "Access-Control-Allow-Origin",
+              "value": "*"
+            },
+            {
+              "key": "Content-Security-Policy",
+              "value": "default-src 'none'"
+            },
+            {
+              "key": "X-Content-Type-Options",
+              "value": "nosniff"
+            },
+            {
+              "key": "Content-Type",
+              "value": "text/html; charset=utf-8"
+            },
+            {
+              "key": "Content-Length",
+              "value": "154"
+            },
+            {
+              "key": "Date",
+              "value": "Mon, 26 Jan 2026 22:36:43 GMT"
+            },
+            {
+              "key": "Connection",
+              "value": "keep-alive"
+            },
+            {
+              "key": "Keep-Alive",
+              "value": "timeout=5"
+            }
+          ],
+          "stream": {
+            "type": "Buffer",
+            "data": [
+              60,
+              33,
+              68,
+              79,
+              67,
+              84,
+              89,
+              80,
+              69,
+              32,
+              104,
+              116,
+              109,
+              108,
+              62,
+              10,
+              60,
+              104,
+              116,
+              109,
+              108,
+              32,
+              108,
+              97,
+              110,
+              103,
+              61,
+              34,
+              101,
+              110,
+              34,
+              62,
+              10,
+              60,
+              104,
+              101,
+              97,
+              100,
+              62,
+              10,
+              60,
+              109,
+              101,
+              116,
+              97,
+              32,
+              99,
+              104,
+              97,
+              114,
+              115,
+              101,
+              116,
+              61,
+              34,
+              117,
+              116,
+              102,
+              45,
+              56,
+              34,
+              62,
+              10,
+              60,
+              116,
+              105,
+              116,
+              108,
+              101,
+              62,
+              69,
+              114,
+              114,
+              111,
+              114,
+              60,
+              47,
+              116,
+              105,
+              116,
+              108,
+              101,
+              62,
+              10,
+              60,
+              47,
+              104,
+              101,
+              97,
+              100,
+              62,
+              10,
+              60,
+              98,
+              111,
+              100,
+              121,
+              62,
+              10,
+              60,
+              112,
+              114,
+              101,
+              62,
+              67,
+              97,
+              110,
+              110,
+              111,
+              116,
+              32,
+              80,
+              85,
+              84,
+              32,
+              47,
+              97,
+              112,
+              105,
+              47,
+              112,
+              114,
+              111,
+              112,
+              101,
+              114,
+              116,
+              105,
+              101,
+              115,
+              47,
+              60,
+              47,
+              112,
+              114,
+              101,
+              62,
+              10,
+              60,
+              47,
+              98,
+              111,
+              100,
+              121,
+              62,
+              10,
+              60,
+              47,
+              104,
+              116,
+              109,
+              108,
+              62,
+              10
+            ]
+          },
+          "cookie": [],
+          "responseTime": 4,
+          "responseSize": 154
+        },
+        "id": "5642c014-a23c-4be2-8777-738d14d89fc5"
+      },
+      {
+        "cursor": {
+          "ref": "4bc3cd32-552a-4bc3-9954-1c28c03de2c0",
+          "length": 18,
+          "cycles": 1,
+          "position": 13,
+          "iteration": 0,
+          "httpRequestId": "2af1faf0-f1d1-4fc5-ba7e-dc0243f111d9"
+        },
+        "item": {
+          "id": "cceff678-95e5-4f4f-8bf6-a59350576314",
+          "name": "14. Update No Auth (Error)",
+          "request": {
+            "url": {
+              "protocol": "http",
+              "port": "3000",
+              "path": [
+                "api",
+                "properties",
+                "{{property_id}}"
+              ],
+              "host": [
+                "localhost"
+              ],
+              "query": [],
+              "variable": []
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "method": "PUT",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"title\": \"Update\"}"
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "tests",
+              "script": {
+                "id": "7371be0b-5c14-4805-b736-3bc2e7386a51",
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Update no auth - Status 401\", function () { pm.response.to.have.status(401); });"
+                ]
+              }
+            }
+          ]
+        },
+        "request": {
+          "url": {
+            "protocol": "http",
+            "port": "3000",
+            "path": [
+              "api",
+              "properties",
+              ""
+            ],
+            "host": [
+              "localhost"
+            ],
+            "query": [],
+            "variable": []
+          },
+          "header": [
+            {
+              "key": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "key": "User-Agent",
+              "value": "PostmanRuntime/7.39.1",
+              "system": true
+            },
+            {
+              "key": "Accept",
+              "value": "*/*",
+              "system": true
+            },
+            {
+              "key": "Cache-Control",
+              "value": "no-cache",
+              "system": true
+            },
+            {
+              "key": "Postman-Token",
+              "value": "0aa3e483-d0ff-470a-9fa3-ec6a24c1b336",
+              "system": true
+            },
+            {
+              "key": "Host",
+              "value": "localhost:3000",
+              "system": true
+            },
+            {
+              "key": "Accept-Encoding",
+              "value": "gzip, deflate, br",
+              "system": true
+            },
+            {
+              "key": "Connection",
+              "value": "keep-alive",
+              "system": true
+            },
+            {
+              "key": "Content-Length",
+              "value": "19",
+              "system": true
+            }
+          ],
+          "method": "PUT",
+          "body": {
+            "mode": "raw",
+            "raw": "{\"title\": \"Update\"}"
+          },
+          "auth": {
+            "type": "bearer",
+            "bearer": [
+              {
+                "type": "any",
+                "value": "",
+                "key": "token"
+              }
+            ]
+          }
+        },
+        "response": {
+          "id": "43766c3b-1beb-402e-b51d-33c78829371c",
+          "status": "Not Found",
+          "code": 404,
+          "header": [
+            {
+              "key": "X-Powered-By",
+              "value": "Express"
+            },
+            {
+              "key": "Access-Control-Allow-Origin",
+              "value": "*"
+            },
+            {
+              "key": "Content-Security-Policy",
+              "value": "default-src 'none'"
+            },
+            {
+              "key": "X-Content-Type-Options",
+              "value": "nosniff"
+            },
+            {
+              "key": "Content-Type",
+              "value": "text/html; charset=utf-8"
+            },
+            {
+              "key": "Content-Length",
+              "value": "154"
+            },
+            {
+              "key": "Date",
+              "value": "Mon, 26 Jan 2026 22:36:43 GMT"
+            },
+            {
+              "key": "Connection",
+              "value": "keep-alive"
+            },
+            {
+              "key": "Keep-Alive",
+              "value": "timeout=5"
+            }
+          ],
+          "stream": {
+            "type": "Buffer",
+            "data": [
+              60,
+              33,
+              68,
+              79,
+              67,
+              84,
+              89,
+              80,
+              69,
+              32,
+              104,
+              116,
+              109,
+              108,
+              62,
+              10,
+              60,
+              104,
+              116,
+              109,
+              108,
+              32,
+              108,
+              97,
+              110,
+              103,
+              61,
+              34,
+              101,
+              110,
+              34,
+              62,
+              10,
+              60,
+              104,
+              101,
+              97,
+              100,
+              62,
+              10,
+              60,
+              109,
+              101,
+              116,
+              97,
+              32,
+              99,
+              104,
+              97,
+              114,
+              115,
+              101,
+              116,
+              61,
+              34,
+              117,
+              116,
+              102,
+              45,
+              56,
+              34,
+              62,
+              10,
+              60,
+              116,
+              105,
+              116,
+              108,
+              101,
+              62,
+              69,
+              114,
+              114,
+              111,
+              114,
+              60,
+              47,
+              116,
+              105,
+              116,
+              108,
+              101,
+              62,
+              10,
+              60,
+              47,
+              104,
+              101,
+              97,
+              100,
+              62,
+              10,
+              60,
+              98,
+              111,
+              100,
+              121,
+              62,
+              10,
+              60,
+              112,
+              114,
+              101,
+              62,
+              67,
+              97,
+              110,
+              110,
+              111,
+              116,
+              32,
+              80,
+              85,
+              84,
+              32,
+              47,
+              97,
+              112,
+              105,
+              47,
+              112,
+              114,
+              111,
+              112,
+              101,
+              114,
+              116,
+              105,
+              101,
+              115,
+              47,
+              60,
+              47,
+              112,
+              114,
+              101,
+              62,
+              10,
+              60,
+              47,
+              98,
+              111,
+              100,
+              121,
+              62,
+              10,
+              60,
+              47,
+              104,
+              116,
+              109,
+              108,
+              62,
+              10
+            ]
+          },
+          "cookie": [],
+          "responseTime": 4,
+          "responseSize": 154
+        },
+        "id": "cceff678-95e5-4f4f-8bf6-a59350576314"
+      },
+      {
+        "cursor": {
+          "ref": "999e6f00-03dd-4deb-94fe-3718e24f4172",
+          "length": 18,
+          "cycles": 1,
+          "position": 14,
+          "iteration": 0,
+          "httpRequestId": "e0d5b00e-792b-46ef-a548-f96d05f82688"
+        },
+        "item": {
+          "id": "0c25c39d-32c5-45b0-bcfc-723a5b007d9a",
+          "name": "15. Delete Property",
+          "request": {
+            "url": {
+              "protocol": "http",
+              "port": "3000",
+              "path": [
+                "api",
+                "properties",
+                "{{property_id}}"
+              ],
+              "host": [
+                "localhost"
+              ],
+              "query": [],
+              "variable": []
+            },
+            "method": "DELETE"
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "tests",
+              "script": {
+                "id": "b277cd7f-3d21-465f-b3a8-4f719dabdb6e",
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Delete - Status 200\", function () { pm.response.to.have.status(200); });"
+                ]
+              }
+            }
+          ]
+        },
+        "request": {
+          "url": {
+            "protocol": "http",
+            "port": "3000",
+            "path": [
+              "api",
+              "properties",
+              ""
+            ],
+            "host": [
+              "localhost"
+            ],
+            "query": [],
+            "variable": []
+          },
+          "header": [
+            {
+              "key": "User-Agent",
+              "value": "PostmanRuntime/7.39.1",
+              "system": true
+            },
+            {
+              "key": "Accept",
+              "value": "*/*",
+              "system": true
+            },
+            {
+              "key": "Cache-Control",
+              "value": "no-cache",
+              "system": true
+            },
+            {
+              "key": "Postman-Token",
+              "value": "15f8ad45-222e-4893-abc4-a37e3d9fab03",
+              "system": true
+            },
+            {
+              "key": "Host",
+              "value": "localhost:3000",
+              "system": true
+            },
+            {
+              "key": "Accept-Encoding",
+              "value": "gzip, deflate, br",
+              "system": true
+            },
+            {
+              "key": "Connection",
+              "value": "keep-alive",
+              "system": true
+            }
+          ],
+          "method": "DELETE",
+          "auth": {
+            "type": "bearer",
+            "bearer": [
+              {
+                "type": "any",
+                "value": "",
+                "key": "token"
+              }
+            ]
+          }
+        },
+        "response": {
+          "id": "50fb02f8-c9a1-487c-b510-229014955b7e",
+          "status": "Not Found",
+          "code": 404,
+          "header": [
+            {
+              "key": "X-Powered-By",
+              "value": "Express"
+            },
+            {
+              "key": "Access-Control-Allow-Origin",
+              "value": "*"
+            },
+            {
+              "key": "Content-Security-Policy",
+              "value": "default-src 'none'"
+            },
+            {
+              "key": "X-Content-Type-Options",
+              "value": "nosniff"
+            },
+            {
+              "key": "Content-Type",
+              "value": "text/html; charset=utf-8"
+            },
+            {
+              "key": "Content-Length",
+              "value": "157"
+            },
+            {
+              "key": "Date",
+              "value": "Mon, 26 Jan 2026 22:36:43 GMT"
+            },
+            {
+              "key": "Connection",
+              "value": "keep-alive"
+            },
+            {
+              "key": "Keep-Alive",
+              "value": "timeout=5"
+            }
+          ],
+          "stream": {
+            "type": "Buffer",
+            "data": [
+              60,
+              33,
+              68,
+              79,
+              67,
+              84,
+              89,
+              80,
+              69,
+              32,
+              104,
+              116,
+              109,
+              108,
+              62,
+              10,
+              60,
+              104,
+              116,
+              109,
+              108,
+              32,
+              108,
+              97,
+              110,
+              103,
+              61,
+              34,
+              101,
+              110,
+              34,
+              62,
+              10,
+              60,
+              104,
+              101,
+              97,
+              100,
+              62,
+              10,
+              60,
+              109,
+              101,
+              116,
+              97,
+              32,
+              99,
+              104,
+              97,
+              114,
+              115,
+              101,
+              116,
+              61,
+              34,
+              117,
+              116,
+              102,
+              45,
+              56,
+              34,
+              62,
+              10,
+              60,
+              116,
+              105,
+              116,
+              108,
+              101,
+              62,
+              69,
+              114,
+              114,
+              111,
+              114,
+              60,
+              47,
+              116,
+              105,
+              116,
+              108,
+              101,
+              62,
+              10,
+              60,
+              47,
+              104,
+              101,
+              97,
+              100,
+              62,
+              10,
+              60,
+              98,
+              111,
+              100,
+              121,
+              62,
+              10,
+              60,
+              112,
+              114,
+              101,
+              62,
+              67,
+              97,
+              110,
+              110,
+              111,
+              116,
+              32,
+              68,
+              69,
+              76,
+              69,
+              84,
+              69,
+              32,
+              47,
+              97,
+              112,
+              105,
+              47,
+              112,
+              114,
+              111,
+              112,
+              101,
+              114,
+              116,
+              105,
+              101,
+              115,
+              47,
+              60,
+              47,
+              112,
+              114,
+              101,
+              62,
+              10,
+              60,
+              47,
+              98,
+              111,
+              100,
+              121,
+              62,
+              10,
+              60,
+              47,
+              104,
+              116,
+              109,
+              108,
+              62,
+              10
+            ]
+          },
+          "cookie": [],
+          "responseTime": 3,
+          "responseSize": 157
+        },
+        "id": "0c25c39d-32c5-45b0-bcfc-723a5b007d9a"
+      },
+      {
+        "cursor": {
+          "ref": "6a7bfd1a-b35c-4f48-801c-9ed21be0dab2",
+          "length": 18,
+          "cycles": 1,
+          "position": 15,
+          "iteration": 0,
+          "httpRequestId": "a76b2d03-9555-4608-9fa1-c819a07c732f"
+        },
+        "item": {
+          "id": "418baeec-1cd3-4039-856a-04a01a74a0b4",
+          "name": "16. Delete Not Found (Error)",
+          "request": {
+            "url": {
+              "protocol": "http",
+              "port": "3000",
+              "path": [
+                "api",
+                "properties",
+                "invalidid123"
+              ],
+              "host": [
+                "localhost"
+              ],
+              "query": [],
+              "variable": []
+            },
+            "method": "DELETE"
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "tests",
+              "script": {
+                "id": "2cafb735-fdfe-4fc1-ad7e-e7bcf57754ba",
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Delete invalid - Error\", function () { pm.response.to.have.status([400, 404, 500]); });"
+                ]
+              }
+            }
+          ]
+        },
+        "request": {
+          "url": {
+            "protocol": "http",
+            "port": "3000",
+            "path": [
+              "api",
+              "properties",
+              "invalidid123"
+            ],
+            "host": [
+              "localhost"
+            ],
+            "query": [],
+            "variable": []
+          },
+          "header": [
+            {
+              "key": "User-Agent",
+              "value": "PostmanRuntime/7.39.1",
+              "system": true
+            },
+            {
+              "key": "Accept",
+              "value": "*/*",
+              "system": true
+            },
+            {
+              "key": "Cache-Control",
+              "value": "no-cache",
+              "system": true
+            },
+            {
+              "key": "Postman-Token",
+              "value": "3c0a69bf-69a5-4d24-a969-b6aed3e9585b",
+              "system": true
+            },
+            {
+              "key": "Host",
+              "value": "localhost:3000",
+              "system": true
+            },
+            {
+              "key": "Accept-Encoding",
+              "value": "gzip, deflate, br",
+              "system": true
+            },
+            {
+              "key": "Connection",
+              "value": "keep-alive",
+              "system": true
+            }
+          ],
+          "method": "DELETE",
+          "auth": {
+            "type": "bearer",
+            "bearer": [
+              {
+                "type": "any",
+                "value": "",
+                "key": "token"
+              }
+            ]
+          }
+        },
+        "response": {
+          "id": "c8db5c74-1b61-4dc1-9e23-852c7ac1648a",
+          "status": "Not Found",
+          "code": 404,
+          "header": [
+            {
+              "key": "X-Powered-By",
+              "value": "Express"
+            },
+            {
+              "key": "Access-Control-Allow-Origin",
+              "value": "*"
+            },
+            {
+              "key": "Content-Security-Policy",
+              "value": "default-src 'none'"
+            },
+            {
+              "key": "X-Content-Type-Options",
+              "value": "nosniff"
+            },
+            {
+              "key": "Content-Type",
+              "value": "text/html; charset=utf-8"
+            },
+            {
+              "key": "Content-Length",
+              "value": "169"
+            },
+            {
+              "key": "Date",
+              "value": "Mon, 26 Jan 2026 22:36:43 GMT"
+            },
+            {
+              "key": "Connection",
+              "value": "keep-alive"
+            },
+            {
+              "key": "Keep-Alive",
+              "value": "timeout=5"
+            }
+          ],
+          "stream": {
+            "type": "Buffer",
+            "data": [
+              60,
+              33,
+              68,
+              79,
+              67,
+              84,
+              89,
+              80,
+              69,
+              32,
+              104,
+              116,
+              109,
+              108,
+              62,
+              10,
+              60,
+              104,
+              116,
+              109,
+              108,
+              32,
+              108,
+              97,
+              110,
+              103,
+              61,
+              34,
+              101,
+              110,
+              34,
+              62,
+              10,
+              60,
+              104,
+              101,
+              97,
+              100,
+              62,
+              10,
+              60,
+              109,
+              101,
+              116,
+              97,
+              32,
+              99,
+              104,
+              97,
+              114,
+              115,
+              101,
+              116,
+              61,
+              34,
+              117,
+              116,
+              102,
+              45,
+              56,
+              34,
+              62,
+              10,
+              60,
+              116,
+              105,
+              116,
+              108,
+              101,
+              62,
+              69,
+              114,
+              114,
+              111,
+              114,
+              60,
+              47,
+              116,
+              105,
+              116,
+              108,
+              101,
+              62,
+              10,
+              60,
+              47,
+              104,
+              101,
+              97,
+              100,
+              62,
+              10,
+              60,
+              98,
+              111,
+              100,
+              121,
+              62,
+              10,
+              60,
+              112,
+              114,
+              101,
+              62,
+              67,
+              97,
+              110,
+              110,
+              111,
+              116,
+              32,
+              68,
+              69,
+              76,
+              69,
+              84,
+              69,
+              32,
+              47,
+              97,
+              112,
+              105,
+              47,
+              112,
+              114,
+              111,
+              112,
+              101,
+              114,
+              116,
+              105,
+              101,
+              115,
+              47,
+              105,
+              110,
+              118,
+              97,
+              108,
+              105,
+              100,
+              105,
+              100,
+              49,
+              50,
+              51,
+              60,
+              47,
+              112,
+              114,
+              101,
+              62,
+              10,
+              60,
+              47,
+              98,
+              111,
+              100,
+              121,
+              62,
+              10,
+              60,
+              47,
+              104,
+              116,
+              109,
+              108,
+              62,
+              10
+            ]
+          },
+          "cookie": [],
+          "responseTime": 4,
+          "responseSize": 169
+        },
+        "id": "418baeec-1cd3-4039-856a-04a01a74a0b4"
+      },
+      {
+        "cursor": {
+          "ref": "ae921059-bdad-4bc1-954d-fa4b31d49a20",
+          "length": 18,
+          "cycles": 1,
+          "position": 16,
+          "iteration": 0,
+          "httpRequestId": "95ad5376-3339-4c4a-a0a8-b766b5346cad"
+        },
+        "item": {
+          "id": "61960538-ca25-4c3b-954b-12617f8fa531",
+          "name": "17. Delete No Auth (Error)",
+          "request": {
+            "url": {
+              "protocol": "http",
+              "port": "3000",
+              "path": [
+                "api",
+                "properties",
+                "{{property_id}}"
+              ],
+              "host": [
+                "localhost"
+              ],
+              "query": [],
+              "variable": []
+            },
+            "method": "DELETE"
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "tests",
+              "script": {
+                "id": "3a9ae69e-cb53-4948-93d6-03616be5b1d0",
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Delete no auth - Status 401\", function () { pm.response.to.have.status(401); });"
+                ]
+              }
+            }
+          ]
+        },
+        "request": {
+          "url": {
+            "protocol": "http",
+            "port": "3000",
+            "path": [
+              "api",
+              "properties",
+              ""
+            ],
+            "host": [
+              "localhost"
+            ],
+            "query": [],
+            "variable": []
+          },
+          "header": [
+            {
+              "key": "User-Agent",
+              "value": "PostmanRuntime/7.39.1",
+              "system": true
+            },
+            {
+              "key": "Accept",
+              "value": "*/*",
+              "system": true
+            },
+            {
+              "key": "Cache-Control",
+              "value": "no-cache",
+              "system": true
+            },
+            {
+              "key": "Postman-Token",
+              "value": "79cc7a14-887a-40d1-a0bc-ea93eed20a2d",
+              "system": true
+            },
+            {
+              "key": "Host",
+              "value": "localhost:3000",
+              "system": true
+            },
+            {
+              "key": "Accept-Encoding",
+              "value": "gzip, deflate, br",
+              "system": true
+            },
+            {
+              "key": "Connection",
+              "value": "keep-alive",
+              "system": true
+            }
+          ],
+          "method": "DELETE",
+          "auth": {
+            "type": "bearer",
+            "bearer": [
+              {
+                "type": "any",
+                "value": "",
+                "key": "token"
+              }
+            ]
+          }
+        },
+        "response": {
+          "id": "3c108d54-2c76-464a-904c-1d63fcff358d",
+          "status": "Not Found",
+          "code": 404,
+          "header": [
+            {
+              "key": "X-Powered-By",
+              "value": "Express"
+            },
+            {
+              "key": "Access-Control-Allow-Origin",
+              "value": "*"
+            },
+            {
+              "key": "Content-Security-Policy",
+              "value": "default-src 'none'"
+            },
+            {
+              "key": "X-Content-Type-Options",
+              "value": "nosniff"
+            },
+            {
+              "key": "Content-Type",
+              "value": "text/html; charset=utf-8"
+            },
+            {
+              "key": "Content-Length",
+              "value": "157"
+            },
+            {
+              "key": "Date",
+              "value": "Mon, 26 Jan 2026 22:36:43 GMT"
+            },
+            {
+              "key": "Connection",
+              "value": "keep-alive"
+            },
+            {
+              "key": "Keep-Alive",
+              "value": "timeout=5"
+            }
+          ],
+          "stream": {
+            "type": "Buffer",
+            "data": [
+              60,
+              33,
+              68,
+              79,
+              67,
+              84,
+              89,
+              80,
+              69,
+              32,
+              104,
+              116,
+              109,
+              108,
+              62,
+              10,
+              60,
+              104,
+              116,
+              109,
+              108,
+              32,
+              108,
+              97,
+              110,
+              103,
+              61,
+              34,
+              101,
+              110,
+              34,
+              62,
+              10,
+              60,
+              104,
+              101,
+              97,
+              100,
+              62,
+              10,
+              60,
+              109,
+              101,
+              116,
+              97,
+              32,
+              99,
+              104,
+              97,
+              114,
+              115,
+              101,
+              116,
+              61,
+              34,
+              117,
+              116,
+              102,
+              45,
+              56,
+              34,
+              62,
+              10,
+              60,
+              116,
+              105,
+              116,
+              108,
+              101,
+              62,
+              69,
+              114,
+              114,
+              111,
+              114,
+              60,
+              47,
+              116,
+              105,
+              116,
+              108,
+              101,
+              62,
+              10,
+              60,
+              47,
+              104,
+              101,
+              97,
+              100,
+              62,
+              10,
+              60,
+              98,
+              111,
+              100,
+              121,
+              62,
+              10,
+              60,
+              112,
+              114,
+              101,
+              62,
+              67,
+              97,
+              110,
+              110,
+              111,
+              116,
+              32,
+              68,
+              69,
+              76,
+              69,
+              84,
+              69,
+              32,
+              47,
+              97,
+              112,
+              105,
+              47,
+              112,
+              114,
+              111,
+              112,
+              101,
+              114,
+              116,
+              105,
+              101,
+              115,
+              47,
+              60,
+              47,
+              112,
+              114,
+              101,
+              62,
+              10,
+              60,
+              47,
+              98,
+              111,
+              100,
+              121,
+              62,
+              10,
+              60,
+              47,
+              104,
+              116,
+              109,
+              108,
+              62,
+              10
+            ]
+          },
+          "cookie": [],
+          "responseTime": 3,
+          "responseSize": 157
+        },
+        "id": "61960538-ca25-4c3b-954b-12617f8fa531"
+      },
+      {
+        "cursor": {
+          "ref": "27369346-02c6-40a7-91ee-7c48ae0d8953",
+          "length": 18,
+          "cycles": 1,
+          "position": 17,
+          "iteration": 0,
+          "httpRequestId": "b06dc6ba-d3db-457a-ad6d-addd83019dda"
+        },
+        "item": {
+          "id": "f76f818c-8db6-4728-8938-185ff7a8cb4c",
+          "name": "18. Large Area Property",
+          "request": {
+            "url": {
+              "protocol": "http",
+              "port": "3000",
+              "path": [
+                "api",
+                "properties"
+              ],
+              "host": [
+                "localhost"
+              ],
+              "query": [],
+              "variable": []
+            },
+            "method": "POST",
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "title",
+                  "value": "Large Farm Property",
+                  "type": "text"
+                },
+                {
+                  "key": "description",
+                  "value": "Very large property",
+                  "type": "text"
+                },
+                {
+                  "key": "address",
+                  "value": "Farm Area",
+                  "type": "text"
+                },
+                {
+                  "key": "boundaryCoordinates",
+                  "value": "[]",
+                  "type": "text"
+                },
+                {
+                  "key": "areaInSqFt",
+                  "value": "100000",
+                  "type": "text"
+                },
+                {
+                  "key": "images",
+                  "type": "file",
+                  "src": []
+                }
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "tests",
+              "script": {
+                "id": "23bc988d-f5f2-4b3b-925d-9ecd9f04eb14",
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Large area - Status 201\", function () { pm.response.to.have.status(201); });"
+                ]
+              }
+            }
+          ]
+        },
+        "request": {
+          "url": {
+            "protocol": "http",
+            "port": "3000",
+            "path": [
+              "api",
+              "properties"
+            ],
+            "host": [
+              "localhost"
+            ],
+            "query": [],
+            "variable": []
+          },
+          "header": [
+            {
+              "key": "User-Agent",
+              "value": "PostmanRuntime/7.39.1",
+              "system": true
+            },
+            {
+              "key": "Accept",
+              "value": "*/*",
+              "system": true
+            },
+            {
+              "key": "Cache-Control",
+              "value": "no-cache",
+              "system": true
+            },
+            {
+              "key": "Postman-Token",
+              "value": "1480df02-b003-431a-83ab-7ec1edaab6e5",
+              "system": true
+            },
+            {
+              "key": "Host",
+              "value": "localhost:3000",
+              "system": true
+            },
+            {
+              "key": "Accept-Encoding",
+              "value": "gzip, deflate, br",
+              "system": true
+            },
+            {
+              "key": "Connection",
+              "value": "keep-alive",
+              "system": true
+            },
+            {
+              "key": "Content-Length",
+              "value": "776",
+              "system": true
+            }
+          ],
+          "method": "POST",
+          "body": {
+            "mode": "formdata",
+            "formdata": [
+              {
+                "key": "title",
+                "value": "Large Farm Property",
+                "type": "text"
+              },
+              {
+                "key": "description",
+                "value": "Very large property",
+                "type": "text"
+              },
+              {
+                "key": "address",
+                "value": "Farm Area",
+                "type": "text"
+              },
+              {
+                "key": "boundaryCoordinates",
+                "value": "[]",
+                "type": "text"
+              },
+              {
+                "key": "areaInSqFt",
+                "value": "100000",
+                "type": "text"
+              },
+              {
+                "key": "images",
+                "type": "file",
+                "src": [],
+                "fileName": ""
+              }
+            ]
+          },
+          "auth": {
+            "type": "bearer",
+            "bearer": [
+              {
+                "type": "any",
+                "value": "",
+                "key": "token"
+              }
+            ]
+          }
+        },
+        "response": {
+          "id": "c689e68e-bc67-4686-b67b-05a285aa6a01",
+          "status": "Not Found",
+          "code": 404,
+          "header": [
+            {
+              "key": "X-Powered-By",
+              "value": "Express"
+            },
+            {
+              "key": "Access-Control-Allow-Origin",
+              "value": "*"
+            },
+            {
+              "key": "Content-Security-Policy",
+              "value": "default-src 'none'"
+            },
+            {
+              "key": "X-Content-Type-Options",
+              "value": "nosniff"
+            },
+            {
+              "key": "Content-Type",
+              "value": "text/html; charset=utf-8"
+            },
+            {
+              "key": "Content-Length",
+              "value": "154"
+            },
+            {
+              "key": "Date",
+              "value": "Mon, 26 Jan 2026 22:36:43 GMT"
+            },
+            {
+              "key": "Connection",
+              "value": "keep-alive"
+            },
+            {
+              "key": "Keep-Alive",
+              "value": "timeout=5"
+            }
+          ],
+          "stream": {
+            "type": "Buffer",
+            "data": [
+              60,
+              33,
+              68,
+              79,
+              67,
+              84,
+              89,
+              80,
+              69,
+              32,
+              104,
+              116,
+              109,
+              108,
+              62,
+              10,
+              60,
+              104,
+              116,
+              109,
+              108,
+              32,
+              108,
+              97,
+              110,
+              103,
+              61,
+              34,
+              101,
+              110,
+              34,
+              62,
+              10,
+              60,
+              104,
+              101,
+              97,
+              100,
+              62,
+              10,
+              60,
+              109,
+              101,
+              116,
+              97,
+              32,
+              99,
+              104,
+              97,
+              114,
+              115,
+              101,
+              116,
+              61,
+              34,
+              117,
+              116,
+              102,
+              45,
+              56,
+              34,
+              62,
+              10,
+              60,
+              116,
+              105,
+              116,
+              108,
+              101,
+              62,
+              69,
+              114,
+              114,
+              111,
+              114,
+              60,
+              47,
+              116,
+              105,
+              116,
+              108,
+              101,
+              62,
+              10,
+              60,
+              47,
+              104,
+              101,
+              97,
+              100,
+              62,
+              10,
+              60,
+              98,
+              111,
+              100,
+              121,
+              62,
+              10,
+              60,
+              112,
+              114,
+              101,
+              62,
+              67,
+              97,
+              110,
+              110,
+              111,
+              116,
+              32,
+              80,
+              79,
+              83,
+              84,
+              32,
+              47,
+              97,
+              112,
+              105,
+              47,
+              112,
+              114,
+              111,
+              112,
+              101,
+              114,
+              116,
+              105,
+              101,
+              115,
+              60,
+              47,
+              112,
+              114,
+              101,
+              62,
+              10,
+              60,
+              47,
+              98,
+              111,
+              100,
+              121,
+              62,
+              10,
+              60,
+              47,
+              104,
+              116,
+              109,
+              108,
+              62,
+              10
+            ]
+          },
+          "cookie": [],
+          "responseTime": 4,
+          "responseSize": 154
+        },
+        "id": "f76f818c-8db6-4728-8938-185ff7a8cb4c"
+      }
+    ],
+    "transfers": {
+      "responseTotal": 2643
+    },
+    "failures": [],
+    "error": null
+  }
+}

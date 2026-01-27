@@ -1,0 +1,1019 @@
+{
+  "info": {
+    "_postman_id": "seller-api-tests",
+    "name": "Seller API - Comprehensive Tests",
+    "description": "Complete test suite for Seller API endpoints with all possible scenarios",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{seller_token}}",
+        "type": "string"
+      }
+    ]
+  },
+  "item": [
+    {
+      "name": "🔐 Authentication",
+      "item": [
+        {
+          "name": "1. Register Seller Account",
+          "event": [
+            {
+              "listen": "tests",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.environment.set('seller_id', jsonData.data.user._id);",
+                  "    pm.environment.set('seller_email', jsonData.data.user.email);",
+                  "    console.log('✅ Seller registered:', jsonData.data.user.email);",
+                  "}",
+                  "",
+                  "pm.test('Status code is 201', function() {",
+                  "    pm.expect(pm.response.code).to.equal(201);",
+                  "});",
+                  "",
+                  "pm.test('Response contains user data', function() {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.data).to.have.property('user');",
+                  "    pm.expect(jsonData.data.user.type).to.equal('seller');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"seller{{$timestamp}}@test.com\",\n  \"password\": \"SecurePass123!\",\n  \"name\": \"Test Seller\",\n  \"phone\": \"9876543210\",\n  \"type\": \"seller\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/auth/register",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "register"]
+            }
+          }
+        },
+        {
+          "name": "2. Login Seller",
+          "event": [
+            {
+              "listen": "tests",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.environment.set('seller_token', jsonData.data.token);",
+                  "    pm.environment.set('seller_id', jsonData.data.user._id);",
+                  "    console.log('✅ Seller logged in, token set');",
+                  "}",
+                  "",
+                  "pm.test('Status code is 200', function() {",
+                  "    pm.expect(pm.response.code).to.equal(200);",
+                  "});",
+                  "",
+                  "pm.test('Response contains JWT token', function() {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.data).to.have.property('token');",
+                  "    pm.expect(jsonData.data.token).to.be.a('string');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{seller_email}}\",\n  \"password\": \"SecurePass123!\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/auth/login",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "login"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "📤 Upload Documents - Success Cases",
+      "item": [
+        {
+          "name": "1. Upload Both Documents (Selfie + Aadhar)",
+          "event": [
+            {
+              "listen": "tests",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function() {",
+                  "    pm.expect(pm.response.code).to.equal(200);",
+                  "});",
+                  "",
+                  "pm.test('Response indicates success', function() {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.success).to.be.true;",
+                  "    pm.expect(jsonData.message).to.include('uploaded successfully');",
+                  "});",
+                  "",
+                  "pm.test('Seller data contains URLs', function() {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.data).to.have.property('selfieUrl');",
+                  "    pm.expect(jsonData.data).to.have.property('aadharUrl');",
+                  "});",
+                  "",
+                  "pm.test('URLs are strings', function() {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.data.selfieUrl).to.be.a('string');",
+                  "    pm.expect(jsonData.data.aadharUrl).to.be.a('string');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{seller_token}}"
+              }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "selfie",
+                  "type": "file",
+                  "src": []
+                },
+                {
+                  "key": "aadhar",
+                  "type": "file",
+                  "src": []
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{base_url}}/api/sellers/upload-documents",
+              "host": ["{{base_url}}"],
+              "path": ["api", "sellers", "upload-documents"]
+            }
+          }
+        },
+        {
+          "name": "2. Upload Only Selfie",
+          "event": [
+            {
+              "listen": "tests",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function() {",
+                  "    pm.expect(pm.response.code).to.equal(200);",
+                  "});",
+                  "",
+                  "pm.test('Response indicates success', function() {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.success).to.be.true;",
+                  "});",
+                  "",
+                  "pm.test('Selfie URL is present', function() {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.data.selfieUrl).to.be.a('string');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{seller_token}}"
+              }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "selfie",
+                  "type": "file",
+                  "src": []
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{base_url}}/api/sellers/upload-documents",
+              "host": ["{{base_url}}"],
+              "path": ["api", "sellers", "upload-documents"]
+            }
+          }
+        },
+        {
+          "name": "3. Upload Only Aadhar",
+          "event": [
+            {
+              "listen": "tests",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function() {",
+                  "    pm.expect(pm.response.code).to.equal(200);",
+                  "});",
+                  "",
+                  "pm.test('Response indicates success', function() {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.success).to.be.true;",
+                  "});",
+                  "",
+                  "pm.test('Aadhar URL is present', function() {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.data.aadharUrl).to.be.a('string');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{seller_token}}"
+              }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "aadhar",
+                  "type": "file",
+                  "src": []
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{base_url}}/api/sellers/upload-documents",
+              "host": ["{{base_url}}"],
+              "path": ["api", "sellers", "upload-documents"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "❌ Upload Documents - Error Cases",
+      "item": [
+        {
+          "name": "1. Upload Without Authentication",
+          "event": [
+            {
+              "listen": "tests",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 401', function() {",
+                  "    pm.expect(pm.response.code).to.equal(401);",
+                  "});",
+                  "",
+                  "pm.test('Response contains error message', function() {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.success).to.be.false;",
+                  "    pm.expect(jsonData.message).to.include('authorized');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "selfie",
+                  "type": "file",
+                  "src": []
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{base_url}}/api/sellers/upload-documents",
+              "host": ["{{base_url}}"],
+              "path": ["api", "sellers", "upload-documents"]
+            }
+          }
+        },
+        {
+          "name": "2. Upload With Invalid Token",
+          "event": [
+            {
+              "listen": "tests",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 401', function() {",
+                  "    pm.expect(pm.response.code).to.equal(401);",
+                  "});",
+                  "",
+                  "pm.test('Response indicates authentication failure', function() {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.success).to.be.false;",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer invalid_token_xyz123"
+              }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "selfie",
+                  "type": "file",
+                  "src": []
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{base_url}}/api/sellers/upload-documents",
+              "host": ["{{base_url}}"],
+              "path": ["api", "sellers", "upload-documents"]
+            }
+          }
+        },
+        {
+          "name": "3. Upload Without Any Files",
+          "event": [
+            {
+              "listen": "tests",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 400', function() {",
+                  "    pm.expect(pm.response.code).to.equal(400);",
+                  "});",
+                  "",
+                  "pm.test('Response contains error about missing files', function() {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.success).to.be.false;",
+                  "    pm.expect(jsonData.message.toLowerCase()).to.include('document');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{seller_token}}"
+              }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": []
+            },
+            "url": {
+              "raw": "{{base_url}}/api/sellers/upload-documents",
+              "host": ["{{base_url}}"],
+              "path": ["api", "sellers", "upload-documents"]
+            }
+          }
+        },
+        {
+          "name": "4. Upload Non-Seller as Company User",
+          "event": [
+            {
+              "listen": "tests",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 403 (Forbidden)', function() {",
+                  "    pm.expect(pm.response.code).to.equal(403);",
+                  "});",
+                  "",
+                  "pm.test('Response indicates authorization failure', function() {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.success).to.be.false;",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{company_token}}"
+              }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "selfie",
+                  "type": "file",
+                  "src": []
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{base_url}}/api/sellers/upload-documents",
+              "host": ["{{base_url}}"],
+              "path": ["api", "sellers", "upload-documents"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "👤 Get Seller Profile",
+      "item": [
+        {
+          "name": "1. Get Own Seller Profile - Success",
+          "event": [
+            {
+              "listen": "tests",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function() {",
+                  "    pm.expect(pm.response.code).to.equal(200);",
+                  "});",
+                  "",
+                  "pm.test('Response contains seller data', function() {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.success).to.be.true;",
+                  "    pm.expect(jsonData.data).to.have.property('userId');",
+                  "});",
+                  "",
+                  "pm.test('Seller has expected fields', function() {",
+                  "    var jsonData = pm.response.json();",
+                  "    var seller = jsonData.data;",
+                  "    pm.expect(seller).to.have.property('_id');",
+                  "    pm.expect(seller).to.have.property('userId');",
+                  "});",
+                  "",
+                  "pm.test('User info is populated', function() {",
+                  "    var jsonData = pm.response.json();",
+                  "    var seller = jsonData.data;",
+                  "    pm.expect(seller.userId).to.be.an('object');",
+                  "    pm.expect(seller.userId).to.have.property('email');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{seller_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/sellers/profile",
+              "host": ["{{base_url}}"],
+              "path": ["api", "sellers", "profile"]
+            }
+          }
+        },
+        {
+          "name": "2. Get Profile Without Authentication",
+          "event": [
+            {
+              "listen": "tests",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 401', function() {",
+                  "    pm.expect(pm.response.code).to.equal(401);",
+                  "});",
+                  "",
+                  "pm.test('Response contains error message', function() {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.success).to.be.false;",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/sellers/profile",
+              "host": ["{{base_url}}"],
+              "path": ["api", "sellers", "profile"]
+            }
+          }
+        },
+        {
+          "name": "3. Get Profile With Expired Token",
+          "event": [
+            {
+              "listen": "tests",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 401', function() {",
+                  "    pm.expect(pm.response.code).to.equal(401);",
+                  "});",
+                  "",
+                  "pm.test('Response indicates token issue', function() {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.success).to.be.false;",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer expired.token.here"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/sellers/profile",
+              "host": ["{{base_url}}"],
+              "path": ["api", "sellers", "profile"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "📊 Get All Sellers",
+      "item": [
+        {
+          "name": "1. Get All Sellers - No Filters",
+          "event": [
+            {
+              "listen": "tests",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function() {",
+                  "    pm.expect(pm.response.code).to.equal(200);",
+                  "});",
+                  "",
+                  "pm.test('Response contains sellers data', function() {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.success).to.be.true;",
+                  "    pm.expect(jsonData.data).to.have.property('sellers');",
+                  "});",
+                  "",
+                  "pm.test('Sellers array exists', function() {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.data.sellers).to.be.an('array');",
+                  "});",
+                  "",
+                  "pm.test('Response contains pagination info', function() {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.data).to.have.property('totalPages');",
+                  "    pm.expect(jsonData.data).to.have.property('currentPage');",
+                  "    pm.expect(jsonData.data).to.have.property('total');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{seller_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/sellers/all",
+              "host": ["{{base_url}}"],
+              "path": ["api", "sellers", "all"]
+            }
+          }
+        },
+        {
+          "name": "2. Get All Sellers - With Pagination",
+          "event": [
+            {
+              "listen": "tests",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function() {",
+                  "    pm.expect(pm.response.code).to.equal(200);",
+                  "});",
+                  "",
+                  "pm.test('Pagination works correctly', function() {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.data.currentPage).to.equal(2);",
+                  "    pm.expect(jsonData.data.sellers).to.be.an('array');",
+                  "});",
+                  "",
+                  "pm.test('Returns limited items per page', function() {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.data.sellers.length).to.be.below(6);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{seller_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/sellers/all?page=2&limit=5",
+              "host": ["{{base_url}}"],
+              "path": ["api", "sellers", "all"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "2"
+                },
+                {
+                  "key": "limit",
+                  "value": "5"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "3. Get Verified Sellers Only",
+          "event": [
+            {
+              "listen": "tests",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function() {",
+                  "    pm.expect(pm.response.code).to.equal(200);",
+                  "});",
+                  "",
+                  "pm.test('All returned sellers are verified', function() {",
+                  "    var jsonData = pm.response.json();",
+                  "    var sellers = jsonData.data.sellers;",
+                  "    sellers.forEach(function(seller) {",
+                  "        pm.expect(seller.verified).to.be.true;",
+                  "    });",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{seller_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/sellers/all?verified=true",
+              "host": ["{{base_url}}"],
+              "path": ["api", "sellers", "all"],
+              "query": [
+                {
+                  "key": "verified",
+                  "value": "true"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "4. Get Unverified Sellers Only",
+          "event": [
+            {
+              "listen": "tests",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function() {",
+                  "    pm.expect(pm.response.code).to.equal(200);",
+                  "});",
+                  "",
+                  "pm.test('All returned sellers are unverified', function() {",
+                  "    var jsonData = pm.response.json();",
+                  "    var sellers = jsonData.data.sellers;",
+                  "    sellers.forEach(function(seller) {",
+                  "        pm.expect(seller.verified).to.be.false;",
+                  "    });",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{seller_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/sellers/all?verified=false",
+              "host": ["{{base_url}}"],
+              "path": ["api", "sellers", "all"],
+              "query": [
+                {
+                  "key": "verified",
+                  "value": "false"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "5. Get Sellers With Custom Limit",
+          "event": [
+            {
+              "listen": "tests",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function() {",
+                  "    pm.expect(pm.response.code).to.equal(200);",
+                  "});",
+                  "",
+                  "pm.test('Custom limit is respected', function() {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.data.sellers.length).to.be.below(21);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{seller_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/sellers/all?limit=20",
+              "host": ["{{base_url}}"],
+              "path": ["api", "sellers", "all"],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "20"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "6. Get All Sellers Without Authentication",
+          "event": [
+            {
+              "listen": "tests",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 401', function() {",
+                  "    pm.expect(pm.response.code).to.equal(401);",
+                  "});",
+                  "",
+                  "pm.test('Response contains error', function() {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.success).to.be.false;",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/sellers/all",
+              "host": ["{{base_url}}"],
+              "path": ["api", "sellers", "all"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "🔍 Edge Cases & Special Scenarios",
+      "item": [
+        {
+          "name": "1. Invalid Page Number",
+          "event": [
+            {
+              "listen": "tests",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function() {",
+                  "    pm.expect(pm.response.code).to.equal(200);",
+                  "});",
+                  "",
+                  "pm.test('Returns empty array for invalid page', function() {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.data.sellers).to.be.an('array');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{seller_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/sellers/all?page=9999",
+              "host": ["{{base_url}}"],
+              "path": ["api", "sellers", "all"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "9999"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "2. Zero Limit",
+          "event": [
+            {
+              "listen": "tests",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200 or error', function() {",
+                  "    pm.expect([200, 400]).to.include(pm.response.code);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{seller_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/sellers/all?limit=0",
+              "host": ["{{base_url}}"],
+              "path": ["api", "sellers", "all"],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "0"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "3. Negative Page Number",
+          "event": [
+            {
+              "listen": "tests",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200 or 400', function() {",
+                  "    pm.expect([200, 400]).to.include(pm.response.code);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{seller_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/sellers/all?page=-1",
+              "host": ["{{base_url}}"],
+              "path": ["api", "sellers", "all"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "-1"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "4. Multiple Filter Combinations",
+          "event": [
+            {
+              "listen": "tests",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function() {",
+                  "    pm.expect(pm.response.code).to.equal(200);",
+                  "});",
+                  "",
+                  "pm.test('Returns data with all filters applied', function() {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.data).to.have.property('sellers');",
+                  "    pm.expect(jsonData.data).to.have.property('currentPage');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{seller_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/sellers/all?verified=true&page=1&limit=10",
+              "host": ["{{base_url}}"],
+              "path": ["api", "sellers", "all"],
+              "query": [
+                {
+                  "key": "verified",
+                  "value": "true"
+                },
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:3000",
+      "type": "string"
+    },
+    {
+      "key": "seller_token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "seller_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "seller_email",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "company_token",
+      "value": "",
+      "type": "string"
+    }
+  ]
+}

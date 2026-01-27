@@ -1,0 +1,119 @@
+{
+  "tech_stack": [
+    "JavaScript",
+    "Node.js",
+    "Express.js",
+    "MongoDB",
+    "Mongoose",
+    "Next.js",
+    "React",
+    "CSS"
+  ],
+  "features": [
+    {
+      "name": "Authentication System",
+      "description": "Complete authentication system with registration, login, profile management, and JWT-based authorization",
+      "files": [
+        "backend/src/controllers/auth.controller.js",
+        "backend/src/services/auth.service.js",
+        "backend/src/routes/auth.routes.js",
+        "backend/src/middlewares/auth.js",
+        "backend/src/models/user.model.js",
+        "frontend/src/services/api.js",
+        "frontend/src/app/signup/page.js",
+        "frontend/src/app/login/page.js",
+        "frontend/src/app/dashboard/page.js"
+      ]
+    },
+    {
+      "name": "Seller Management",
+      "description": "Seller profile management with document upload and verification",
+      "files": [
+        "backend/src/controllers/seller.controller.js",
+        "backend/src/services/seller.service.js",
+        "backend/src/routes/seller.routes.js",
+        "backend/src/models/seller.model.js",
+        "frontend/src/services/api.js",
+        "frontend/src/app/verify-identity/page.js"
+      ]
+    },
+    {
+      "name": "Company Management",
+      "description": "Company profile management with document upload and verification",
+      "files": [
+        "backend/src/controllers/company.controller.js",
+        "backend/src/services/company.service.js",
+        "backend/src/routes/company.routes.js",
+        "backend/src/models/company.model.js"
+      ]
+    },
+    {
+      "name": "Property Management",
+      "description": "CRUD operations for properties (green assets) with image uploads",
+      "files": [
+        "backend/src/controllers/property.controller.js",
+        "backend/src/services/property.service.js",
+        "backend/src/routes/property.routes.js",
+        "backend/src/models/property.model.js",
+        "frontend/src/services/api.js",
+        "frontend/src/app/property-verification/page.js"
+      ]
+    },
+    {
+      "name": "Carbon Coin System",
+      "description": "Digital wallet system for carbon credits with transaction history and transfer functionality",
+      "files": [
+        "backend/src/controllers/carbonCoin.controller.js",
+        "backend/src/services/carbonCoin.service.js",
+        "backend/src/routes/carbonCoin.routes.js",
+        "backend/src/models/carbonCoin.model.js"
+      ]
+    },
+    {
+      "name": "File Upload System",
+      "description": "Image and document upload with Cloudinary integration",
+      "files": [
+        "backend/src/middlewares/upload.js",
+        "backend/utils/cloudinary.js"
+      ]
+    },
+    {
+      "name": "Database Models",
+      "description": "Mongoose schemas for all entities in the system",
+      "files": [
+        "backend/src/models/user.model.js",
+        "backend/src/models/seller.model.js",
+        "backend/src/models/company.model.js",
+        "backend/src/models/property.model.js",
+        "backend/src/models/carbonCoin.model.js"
+      ]
+    },
+    {
+      "name": "API Service Layer",
+      "description": "Frontend service to communicate with backend APIs",
+      "files": [
+        "frontend/src/services/api.js"
+      ]
+    },
+    {
+      "name": "Frontend Components",
+      "description": "Reusable UI components for the application",
+      "files": [
+        "frontend/src/components/Navbar.jsx",
+        "frontend/src/components/Footer.jsx"
+      ]
+    },
+    {
+      "name": "Frontend Pages",
+      "description": "Main application pages with API integration",
+      "files": [
+        "frontend/src/app/page.js",
+        "frontend/src/app/signup/page.js",
+        "frontend/src/app/login/page.js",
+        "frontend/src/app/dashboard/page.js",
+        "frontend/src/app/verify-identity/page.js",
+        "frontend/src/app/property-verification/page.js"
+      ]
+    }
+  ]
+}
