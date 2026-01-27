@@ -1,5 +1,6 @@
 const Seller = require("../models/seller.model");
 const User = require("../models/user.model");
+const SellerVerificationQueue = require("../queues/sellerVerificationQueue");
 const { uploadToCloudinary } = require("../../utils/cloudinary");
 
 class SellerService {
@@ -15,7 +16,7 @@ class SellerService {
         if (files.selfie) {
             const selfieResult = await uploadToCloudinary(
                 files.selfie[0].buffer,
-                "carbon_marketplace/seller/selfies"
+                "carbon_marketplace/seller/selfies",
             );
             selfieUrl = selfieResult.secure_url;
         }
@@ -23,23 +24,24 @@ class SellerService {
         if (files.aadhar) {
             const aadharResult = await uploadToCloudinary(
                 files.aadhar[0].buffer,
-                "carbon_marketplace/seller/aadhar"
+                "carbon_marketplace/seller/aadhar",
             );
             aadharUrl = aadharResult.secure_url;
         }
-
+        
         seller.selfieUrl = selfieUrl;
         seller.aadharUrl = aadharUrl;
         await seller.save();
-
-        // Update user verification status
-        await User.findByIdAndUpdate(userId, { verified: true });
+        await SellerVerificationQueue.addJob({ userId });
 
         return seller;
     }
 
     async getSellerProfile(userId) {
-        const seller = await Seller.findOne({ userId }).populate("userId", "-password");
+        const seller = await Seller.findOne({ userId }).populate(
+            "userId",
+            "-password",
+        );
         if (!seller) {
             throw new Error("Seller profile not found");
         }
