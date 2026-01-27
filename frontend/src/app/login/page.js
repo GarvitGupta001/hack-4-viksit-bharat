@@ -76,8 +76,15 @@ const LoginPage = () => {
       localStorage.setItem('userName', response.data.user.name);
       localStorage.setItem('isLoggedIn', 'true');
 
-      // Redirect to identity verification
-      router.push('/verify-identity');
+      // Check if user is already verified
+      if (response.data.user.verified) {
+        // If user is already verified, redirect to dashboard
+        localStorage.setItem('identityVerified', 'true');
+        router.push('/dashboard');
+      } else {
+        // If user is not verified, redirect to identity verification
+        router.push('/verify-identity');
+      }
     } catch (error) {
       console.error('Login error:', error);
       setErrors({ api: error.message || 'Login failed. Please try again.' });

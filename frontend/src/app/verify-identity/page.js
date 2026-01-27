@@ -75,6 +75,18 @@ const VerifyIdentityPage = () => {
       localStorage.setItem('identityVerified', 'true');
       localStorage.setItem('carbonCoins', response.data.carbonCoins || 0);
 
+      // Update user's verification status in the backend by fetching profile again
+      // This ensures the verification status is reflected immediately
+      try {
+        const profileResponse = await apiClient.getProfile();
+        if (profileResponse.data.verified) {
+          // Verification confirmed from backend
+          localStorage.setItem('identityVerified', 'true');
+        }
+      } catch (error) {
+        console.error('Error fetching updated profile:', error);
+      }
+
       // Redirect to dashboard after a short delay
       setTimeout(() => {
         router.push('/dashboard');

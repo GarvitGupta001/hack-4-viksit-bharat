@@ -20,17 +20,12 @@ const DashboardPage = () => {
   useEffect(() => {
     const initializeDashboard = async () => {
       const loggedIn = localStorage.getItem('isLoggedIn') === 'true';
-      const identityVerified = localStorage.getItem('identityVerified') === 'true';
 
       setIsLoggedIn(loggedIn);
-      setIsIdentityVerified(identityVerified);
 
-      // Redirect if not logged in or not identity verified
+      // Redirect if not logged in
       if (!loggedIn) {
         router.push('/login');
-        return;
-      } else if (!identityVerified) {
-        router.push('/verify-identity');
         return;
       }
 
@@ -38,6 +33,19 @@ const DashboardPage = () => {
         // Fetch user profile
         const profileResponse = await apiClient.getProfile();
         setUserData(profileResponse.data);
+
+        // Check if user is verified from the profile response
+        const isUserVerified = profileResponse.data.verified;
+        setIsIdentityVerified(isUserVerified);
+
+        // Update localStorage with current verification status
+        localStorage.setItem('identityVerified', isUserVerified ? 'true' : 'false');
+
+        // Redirect to verification if user is not verified
+        if (!isUserVerified) {
+          router.push('/verify-identity');
+          return;
+        }
 
         // Fetch carbon coin balance
         const coinsResponse = await apiClient.getCarbonCoinBalance();
@@ -124,9 +132,23 @@ const DashboardPage = () => {
 
             <div className="dashboard-actions" style={{fontSize: "1rem"}}>
               {userData?.type === 'seller' ? (
-                <Link href="/property-verification" className="action-button primary">
-                  Start Property Verification
-                </Link>
+                <>
+                  <Link href="/property-verification" className="action-button primary">
+                    Start Property Verification
+                  </Link>
+                  <Link href="/transfer-coins" className="action-button secondary">
+                    Transfer Carbon Coins
+                  </Link>
+                </>
+              ) : userData?.type === 'company' ? (
+                <>
+                  <Link href="/company/register" className="action-button primary">
+                    Register Company Documents
+                  </Link>
+                  <Link href="/transfer-coins" className="action-button secondary">
+                    Transfer Carbon Coins
+                  </Link>
+                </>
               ) : (
                 <Link href="/properties" className="action-button primary">
                   Browse Properties

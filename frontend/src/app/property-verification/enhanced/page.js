@@ -7,7 +7,84 @@ import Footer from '../../components/Footer';
 import Link from 'next/link';
 import apiClient from '../../services/api';
 
-const PropertyVerificationPage = () => {
+// Simple map-like component since we don't have Leaflet installed
+const SimpleMap = ({ onCoordinateSelect, selectedCoordinates }) => {
+  const handleMapClick = (e) => {
+    // In a real implementation, this would get coordinates from the map
+    // For now, we'll simulate with random coordinates
+    const rect = e.currentTarget.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    
+    // Convert pixel coordinates to lat/lng (simulated)
+    const lat = 20 + (y / rect.height) * 10; // Range: 20-30
+    const lng = 70 + (x / rect.width) * 10;  // Range: 70-80
+    
+    onCoordinateSelect({ lat: parseFloat(lat.toFixed(6)), lng: parseFloat(lng.toFixed(6)) });
+  };
+
+  return (
+    <div 
+      style={{ 
+        width: '100%', 
+        height: '300px', 
+        border: '1px solid #ccc', 
+        borderRadius: '8px',
+        backgroundColor: '#e0f7fa',
+        position: 'relative',
+        cursor: 'crosshair',
+        overflow: 'hidden'
+      }}
+      onClick={handleMapClick}
+    >
+      <div style={{ position: 'absolute', top: '10px', left: '10px', zIndex: 1, color: '#006064', fontWeight: 'bold' }}>
+        Click on the map to add boundary points
+      </div>
+      
+      {/* Grid lines for visual reference */}
+      <div style={{ position: 'absolute', top: 0, left: '50%', width: '1px', height: '100%', backgroundColor: 'rgba(0,0,0,0.1)' }}></div>
+      <div style={{ position: 'absolute', top: '50%', left: 0, width: '100%', height: '1px', backgroundColor: 'rgba(0,0,0,0.1)' }}></div>
+      
+      {/* Draw selected coordinates */}
+      {selectedCoordinates.map((coord, index) => (
+        <div 
+          key={index}
+          style={{
+            position: 'absolute',
+            width: '12px',
+            height: '12px',
+            borderRadius: '50%',
+            backgroundColor: '#f44336',
+            border: '2px solid white',
+            boxShadow: '0 0 5px rgba(0,0,0,0.5)',
+            left: `${((coord.lng - 70) / 10) * 100}%`,
+            top: `${((coord.lat - 20) / 10) * 100}%`,
+            transform: 'translate(-50%, -50%)',
+            zIndex: 2
+          }}
+          title={`Point ${index + 1}: ${coord.lat}, ${coord.lng}`}
+        >
+          <div style={{
+            position: 'absolute',
+            top: '-20px',
+            left: '50%',
+            transform: 'translateX(-50%)',
+            fontSize: '10px',
+            backgroundColor: 'rgba(0,0,0,0.7)',
+            color: 'white',
+            padding: '1px 3px',
+            borderRadius: '3px',
+            whiteSpace: 'nowrap'
+          }}>
+            {index + 1}
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+};
+
+const EnhancedPropertyVerificationPage = () => {
   const [step, setStep] = useState(1); // Track current step
   const [formData, setFormData] = useState({
     title: '',
@@ -71,6 +148,20 @@ const PropertyVerificationPage = () => {
     setPreviewImages(prev => prev.filter((_, i) => i !== index));
   };
 
+  const handleCoordinateSelect = (coordinate) => {
+    setFormData(prev => ({
+      ...prev,
+      boundaryCoordinates: [...prev.boundaryCoordinates, coordinate]
+    }));
+  };
+
+  const removeCoordinate = (index) => {
+    setFormData(prev => ({
+      ...prev,
+      boundaryCoordinates: prev.boundaryCoordinates.filter((_, i) => i !== index)
+    }));
+  };
+
   const validateStep1 = () => {
     const newErrors = {};
 
@@ -131,8 +222,7 @@ const PropertyVerificationPage = () => {
       // Prepare property data
       const propertyData = {
         ...formData,
-        areaInSqFt: parseFloat(formData.areaInSqFt),
-        boundaryCoordinates: formData.boundaryCoordinates // This would typically come from a map interface
+        areaInSqFt: parseFloat(formData.areaInSqFt)
       };
 
       // Call API to create property
@@ -254,25 +344,47 @@ const PropertyVerificationPage = () => {
                   </div>
 
                   <div className="form-group">
-                    <label htmlFor="boundaryCoordinates">Boundary Coordinates (Optional)</label>
-                    <textarea
-                      id="boundaryCoordinates"
-                      name="boundaryCoordinates"
-                      value={JSON.stringify(formData.boundaryCoordinates)}
-                      onChange={(e) => {
-                        try {
-                          const parsed = JSON.parse(e.target.value);
-                          if (Array.isArray(parsed)) {
-                            setFormData({...formData, boundaryCoordinates: parsed});
-                          }
-                        } catch (error) {
-                          // Ignore invalid JSON
-                        }
-                      }}
-                      placeholder='Enter coordinates in format: [{"lat": 22.5645, "lng": 72.9289}, {"lat": 22.5648, "lng": 72.9295}]'
-                      rows="4"
-                      disabled={isLoading}
-                    ></textarea>
+                    <label>Boundary Coordinates (Optional)</label>
+                    <p style={{ color: '#757575', fontSize: '0.9rem', marginBottom: '1rem' }}>
+                      Click on the map below to add boundary points for your property
+                    </p>
+                    <SimpleMap 
+                      onCoordinateSelect={handleCoordinateSelect}
+                      selectedCoordinates={formData.boundaryCoordinates}
+                    />
+                    
+                    {formData.boundaryCoordinates.length > 0 && (
+                      <div style={{ marginTop: '1rem' }}>
+                        <h4>Selected Coordinates:</h4>
+                        <ul style={{ listStyle: 'none', padding: 0 }}>
+                          {formData.boundaryCoordinates.map((coord, index) => (
+                            <li key={index} style={{ 
+                              display: 'flex', 
+                              justifyContent: 'space-between', 
+                              alignItems: 'center',
+                              padding: '0.5rem',
+                              borderBottom: '1px solid #eee'
+                            }}>
+                              <span>Point {index + 1}: {coord.lat}, {coord.lng}</span>
+                              <button
+                                type="button"
+                                onClick={() => removeCoordinate(index)}
+                                style={{
+                                  background: '#f44336',
+                                  color: 'white',
+                                  border: 'none',
+                                  borderRadius: '4px',
+                                  padding: '0.25rem 0.5rem',
+                                  cursor: 'pointer'
+                                }}
+                              >
+                                Remove
+                              </button>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
                   </div>
                 </div>
               )}
@@ -343,6 +455,7 @@ const PropertyVerificationPage = () => {
                     <p><strong>Description:</strong> {formData.description}</p>
                     <p><strong>Address:</strong> {formData.address}</p>
                     <p><strong>Area:</strong> {formData.areaInSqFt} sq ft</p>
+                    <p><strong>Boundary Points:</strong> {formData.boundaryCoordinates.length}</p>
                     <p><strong>Images:</strong> {images.length} uploaded</p>
                   </div>
                   
@@ -383,12 +496,9 @@ const PropertyVerificationPage = () => {
                 )}
               </div>
 
-              <div className="dashboard-actions" style={{ fontSize: "1rem", marginTop: "2rem", display: "flex", gap: "1rem", flexWrap: "wrap" }}>
+              <div className="dashboard-actions" style={{ fontSize: "1rem", marginTop: "2rem" }}>
                 <Link href="/dashboard" className="action-button secondary">
                   Back to Dashboard
-                </Link>
-                <Link href="/property-verification/enhanced" className="action-button primary">
-                  Enhanced Verification (with Map)
                 </Link>
               </div>
             </div>
@@ -401,4 +511,4 @@ const PropertyVerificationPage = () => {
   );
 };
 
-export default PropertyVerificationPage;
+export default EnhancedPropertyVerificationPage;

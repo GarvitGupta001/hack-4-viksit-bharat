@@ -7,9 +7,10 @@
     "projectName": "hack-4-viksit-bharat-backend",
     "projectPath": "D:\\carbon_credit\\hack-4-viksit-bharat-backend\\hack-4-viksit-bharat-backend",
     "testIds": [],
-    "additionalInstruction": "",
+    "additionalInstruction": "Focus on testing the new features: property editing, property deletion, carbon coin transfer, company registration, and enhanced property verification",
     "envs": {
       "API_KEY": "sk-user-3o6i3ZNBNE9zcs2UeyCRk1Y6hU9ddf2YfCVepFVtVruMAp0zoVnZwQyitKL8zTYceUvoMicq1y5up7tLek6aJVKhkv-7AO3pSRh38CG3s_O5-pA2igmGv52GB6awVSOgRDo"
     }
-  }
+  },
+  "proxy": "http://488696cd-31e9-428d-9d04-a1643dc523a9:NObg38CQONiFlaULPpbvUdBT8uGlVtYF@tun.testsprite.com:8080"
 }

@@ -1,8 +1,8 @@
 [
   {
     "id": "TC001",
-    "title": "User Registration with valid details",
-    "description": "Verify that a new user can successfully register with valid personal or company details and receives a confirmation.",
+    "title": "User Registration Success",
+    "description": "Verify that a user can register successfully with valid required details and receives JWT token.",
     "category": "functional",
     "priority": "High",
     "steps": [
@@ -12,7 +12,7 @@
       },
       {
         "type": "action",
-        "description": "Enter valid personal or company registration details"
+        "description": "Input valid personal or business registration details for seller or company"
       },
       {
         "type": "action",
@@ -20,14 +20,18 @@
       },
       {
         "type": "assertion",
-        "description": "Check that registration completes successfully and user receives confirmation"
+        "description": "Validate response confirms registration success"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify received JWT token for authentication"
       }
     ]
   },
   {
     "id": "TC002",
-    "title": "User Registration with missing required fields",
-    "description": "Verify that registration fails and appropriate error messages display if required fields are missing.",
+    "title": "User Registration Validation Errors",
+    "description": "Verify registration fails with appropriate errors for missing or invalid required fields.",
     "category": "error handling",
     "priority": "High",
     "steps": [
@@ -37,22 +41,18 @@
       },
       {
         "type": "action",
-        "description": "Leave required fields empty or incomplete"
-      },
-      {
-        "type": "action",
-        "description": "Submit the registration form"
+        "description": "Submit registration with empty or invalid data"
       },
       {
         "type": "assertion",
-        "description": "Verify that registration is rejected and error messages are displayed for missing fields"
+        "description": "Ensure validation error messages are returned for required fields"
       }
     ]
   },
   {
     "id": "TC003",
-    "title": "User Login with correct credentials",
-    "description": "Check that an existing registered user can successfully log in with correct username/email and password using JWT authorization.",
+    "title": "User Login Success",
+    "description": "Verify user can login with valid credentials and receives JWT token.",
     "category": "functional",
     "priority": "High",
     "steps": [
@@ -62,22 +62,22 @@
       },
       {
         "type": "action",
-        "description": "Enter correct username/email and password"
+        "description": "Enter valid username/email and password"
       },
       {
         "type": "action",
-        "description": "Click login button"
+        "description": "Submit login form"
       },
       {
         "type": "assertion",
-        "description": "Verify login success and JWT token is received and stored"
+        "description": "Login is successful and JWT token is issued"
       }
     ]
   },
   {
     "id": "TC004",
-    "title": "User Login with incorrect credentials",
-    "description": "Verify login failure occurs with incorrect username/email or password and appropriate error message is shown.",
+    "title": "User Login Failure",
+    "description": "Verify login fails with incorrect credentials and shows error message.",
     "category": "error handling",
     "priority": "High",
     "steps": [
@@ -87,28 +87,28 @@
       },
       {
         "type": "action",
-        "description": "Enter incorrect username/email or password"
+        "description": "Enter invalid username/email or wrong password"
       },
       {
         "type": "action",
-        "description": "Click login button"
+        "description": "Submit login form"
       },
       {
         "type": "assertion",
-        "description": "Verify that login is rejected and error message is displayed"
+        "description": "Login fails with appropriate error message"
       }
     ]
   },
   {
     "id": "TC005",
-    "title": "Profile update by logged-in user",
-    "description": "Verify that a logged-in user can successfully update their profile information and changes are saved.",
+    "title": "User Profile Update Success",
+    "description": "Verify logged-in user can update profile details successfully.",
     "category": "functional",
     "priority": "Medium",
     "steps": [
       {
         "type": "action",
-        "description": "Log in as a registered user"
+        "description": "Login as existing user"
       },
       {
         "type": "action",
@@ -116,24 +116,28 @@
       },
       {
         "type": "action",
-        "description": "Update profile details and save"
+        "description": "Update profile information (name, contact details, etc.)"
+      },
+      {
+        "type": "action",
+        "description": "Submit updated profile"
       },
       {
         "type": "assertion",
-        "description": "Verify that the profile is updated and changes persist after refresh"
+        "description": "Profile updates are saved and reflected correctly"
       }
     ]
   },
   {
     "id": "TC006",
-    "title": "KYC document upload and verification workflow",
-    "description": "Verify that sellers can upload selfie and Aadhaar documents, biometric verification is processed, and verification status updates correctly.",
+    "title": "KYC Document Upload and Verification Workflow",
+    "description": "Verify that seller can upload selfie and Aadhaar documents, triggering AI-based biometric verification and status updates.",
     "category": "functional",
     "priority": "High",
     "steps": [
       {
         "type": "action",
-        "description": "Log in as a seller"
+        "description": "Login as seller role"
       },
       {
         "type": "action",
@@ -141,28 +145,36 @@
       },
       {
         "type": "action",
-        "description": "Upload selfie and Aadhaar documents"
+        "description": "Upload selfie image and Aadhaar document files"
       },
       {
         "type": "action",
-        "description": "Submit for AI-powered biometric face verification"
+        "description": "Submit for verification"
       },
       {
         "type": "assertion",
-        "description": "Verify that verification process completes and status updates accordingly"
+        "description": "Uploaded files are stored securely"
+      },
+      {
+        "type": "assertion",
+        "description": "AI biometric face matching process is triggered"
+      },
+      {
+        "type": "assertion",
+        "description": "Verification status updates to pending, then approved or rejected based on AI output"
       }
     ]
   },
   {
     "id": "TC007",
-    "title": "KYC verification failure with invalid documents",
-    "description": "Verify that uploading invalid or non-matching documents results in verification failure and appropriate error is shown.",
+    "title": "KYC Verification Failure with Invalid Documents",
+    "description": "Verify the system rejects invalid or corrupt documents and prevents verification approval.",
     "category": "error handling",
     "priority": "High",
     "steps": [
       {
         "type": "action",
-        "description": "Log in as a seller"
+        "description": "Login as seller role"
       },
       {
         "type": "action",
@@ -170,86 +182,60 @@
       },
       {
         "type": "action",
-        "description": "Upload invalid selfie or Aadhaar documents"
+        "description": "Upload corrupt or invalid document files"
       },
       {
         "type": "action",
-        "description": "Submit for biometric verification"
+        "description": "Submit documents for verification"
       },
       {
         "type": "assertion",
-        "description": "Verify that verification fails and error message/status is shown"
+        "description": "System rejects documents and shows clear error messages"
+      },
+      {
+        "type": "assertion",
+        "description": "Verification status remains unapproved"
       }
     ]
   },
   {
     "id": "TC008",
-    "title": "Create green property with valid data",
-    "description": "Verify that a verified user can create a new green property by providing valid details, geotagged images, and boundary coordinates.",
+    "title": "Green Property CRUD Operations",
+    "description": "Verify create, read, update, and delete operations function correctly for green properties with geotagged images and boundary coordinates.",
     "category": "functional",
     "priority": "High",
     "steps": [
       {
         "type": "action",
-        "description": "Log in as a verified seller"
+        "description": "Login as verified seller"
       },
       {
         "type": "action",
-        "description": "Navigate to property verification page"
+        "description": "Navigate to property-verification page"
       },
       {
         "type": "action",
-        "description": "Fill in property details including geotagged images and boundaries"
-      },
-      {
-        "type": "action",
-        "description": "Submit the property registration form"
+        "description": "Create a new property with valid details including boundary coordinates and geotagged images"
       },
       {
         "type": "assertion",
-        "description": "Verify the property is created and appears in user's property list"
-      }
-    ]
-  },
-  {
-    "id": "TC009",
-    "title": "Edit existing property details",
-    "description": "Verify that a user can edit details of an existing green property and changes are saved correctly.",
-    "category": "functional",
-    "priority": "Medium",
-    "steps": [
-      {
-        "type": "action",
-        "description": "Log in as the property owner"
+        "description": "Property is created and details stored correctly"
       },
       {
         "type": "action",
-        "description": "Navigate to existing property details page"
-      },
-      {
-        "type": "action",
-        "description": "Modify property details and save"
+        "description": "Retrieve property details"
       },
       {
         "type": "assertion",
-        "description": "Verify that updates are saved and reflected in property record"
-      }
-    ]
-  },
-  {
-    "id": "TC010",
-    "title": "Delete a green property",
-    "description": "Verify that a user can delete an existing green property and confirm it is removed from their profile and the system.",
-    "category": "functional",
-    "priority": "Medium",
-    "steps": [
-      {
-        "type": "action",
-        "description": "Log in as the property owner"
+        "description": "Property details including coordinates and images are accurate"
       },
       {
         "type": "action",
-        "description": "Navigate to the property details page"
+        "description": "Update property details and images"
+      },
+      {
+        "type": "assertion",
+        "description": "Updated property information is saved and reflected"
       },
       {
         "type": "action",
@@ -257,91 +243,82 @@
       },
       {
         "type": "assertion",
-        "description": "Verify the property is removed from the user's list and backend storage"
+        "description": "Property is removed from system"
+      }
+    ]
+  },
+  {
+    "id": "TC009",
+    "title": "Carbon Coin Wallet Balance and Transaction History Accuracy",
+    "description": "Verify that wallet balances correctly reflect transactions and that the transaction history is complete and accurate.",
+    "category": "functional",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Login as verified user with Carbon Coin wallet"
+      },
+      {
+        "type": "action",
+        "description": "View wallet balance"
+      },
+      {
+        "type": "assertion",
+        "description": "Displayed wallet balance matches backend data"
+      },
+      {
+        "type": "action",
+        "description": "View transaction history"
+      },
+      {
+        "type": "assertion",
+        "description": "All past transactions appear with correct details and timestamps"
+      }
+    ]
+  },
+  {
+    "id": "TC010",
+    "title": "Carbon Coin Transfer Between Verified Users",
+    "description": "Verify coin transfers between users succeed only if both participants are verified, and balances update accordingly.",
+    "category": "functional",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Login as a verified user"
+      },
+      {
+        "type": "action",
+        "description": "Attempt to transfer Carbon Coins to another verified user"
+      },
+      {
+        "type": "assertion",
+        "description": "Transfer succeeds and wallet balances update for both users"
+      },
+      {
+        "type": "action",
+        "description": "Attempt to transfer coins to unverified user"
+      },
+      {
+        "type": "assertion",
+        "description": "Transfer is blocked with error indicating recipient must be verified"
+      },
+      {
+        "type": "action",
+        "description": "Attempt to transfer more coins than available balance"
+      },
+      {
+        "type": "assertion",
+        "description": "Transfer fails with insufficient balance error"
       }
     ]
   },
   {
     "id": "TC011",
-    "title": "Carbon Coin wallet balance and transaction history display",
-    "description": "Verify that users can view accurate Carbon Coin wallet balances and a complete transaction history.",
+    "title": "Company Registration and Document Upload",
+    "description": "Verify companies can register, upload registration documents and logos, and edit their profiles.",
     "category": "functional",
-    "priority": "High",
-    "steps": [
-      {
-        "type": "action",
-        "description": "Log in as a user"
-      },
-      {
-        "type": "action",
-        "description": "Navigate to the dashboard"
-      },
-      {
-        "type": "assertion",
-        "description": "Check that wallet balance matches backend data"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify transaction history is complete and displays correct details"
-      }
-    ]
-  },
-  {
-    "id": "TC012",
-    "title": "Carbon Coin transfer between verified users",
-    "description": "Verify that verified users can transfer Carbon Coins to other verified users and balances update correctly.",
-    "category": "functional",
-    "priority": "High",
-    "steps": [
-      {
-        "type": "action",
-        "description": "Log in as a verified user with sufficient balance"
-      },
-      {
-        "type": "action",
-        "description": "Initiate a coin transfer to another verified user"
-      },
-      {
-        "type": "action",
-        "description": "Confirm and submit the transfer"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify sender and receiver wallet balances update accordingly"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify transaction appears in history for both users"
-      }
-    ]
-  },
-  {
-    "id": "TC013",
-    "title": "Carbon Coin transfer rejected for unverified user",
-    "description": "Verify that coin transfer attempts by or to unverified users are rejected appropriately.",
-    "category": "error handling",
-    "priority": "High",
-    "steps": [
-      {
-        "type": "action",
-        "description": "Log in as an unverified user"
-      },
-      {
-        "type": "action",
-        "description": "Attempt to transfer Carbon Coins to another user"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify that transfer is rejected with appropriate error message"
-      }
-    ]
-  },
-  {
-    "id": "TC014",
-    "title": "Company registration with document upload",
-    "description": "Verify that companies can register and upload logo and registration documents securely with Cloudinary integration.",
-    "category": "functional",
-    "priority": "High",
+    "priority": "Medium",
     "steps": [
       {
         "type": "action",
@@ -349,194 +326,159 @@
       },
       {
         "type": "action",
-        "description": "Fill company registration form with valid details"
-      },
-      {
-        "type": "action",
-        "description": "Upload logo and registration documents"
-      },
-      {
-        "type": "action",
-        "description": "Submit the registration"
+        "description": "Fill in company details and submit registration"
       },
       {
         "type": "assertion",
-        "description": "Verify registration completes and documents are stored securely"
+        "description": "Company profile is created successfully"
+      },
+      {
+        "type": "action",
+        "description": "Upload company logo and registration documents"
+      },
+      {
+        "type": "assertion",
+        "description": "Documents are saved securely and associated with company profile"
+      },
+      {
+        "type": "action",
+        "description": "Edit company profile details"
+      },
+      {
+        "type": "assertion",
+        "description": "Updated company profile information is saved and reflected"
+      }
+    ]
+  },
+  {
+    "id": "TC012",
+    "title": "Admin User Management and Verification Approval Workflow",
+    "description": "Verify admin functionalities include viewing users, approving/rejecting identity verifications, and managing platform users.",
+    "category": "functional",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Login as administrator"
+      },
+      {
+        "type": "action",
+        "description": "Access user management interface"
+      },
+      {
+        "type": "action",
+        "description": "View list of users with statuses"
+      },
+      {
+        "type": "action",
+        "description": "Select pending identity verification request"
+      },
+      {
+        "type": "action",
+        "description": "Approve verification after review"
+      },
+      {
+        "type": "assertion",
+        "description": "User verification status updates to approved"
+      },
+      {
+        "type": "action",
+        "description": "Reject a verification request"
+      },
+      {
+        "type": "assertion",
+        "description": "Verification status updates to rejected with reason"
+      }
+    ]
+  },
+  {
+    "id": "TC013",
+    "title": "Admin Property Oversight and Management",
+    "description": "Verify admin can view, approve, or reject properties and manage property data.",
+    "category": "functional",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Login as administrator"
+      },
+      {
+        "type": "action",
+        "description": "Navigate to property management dashboard"
+      },
+      {
+        "type": "action",
+        "description": "View property listings with details and verification statuses"
+      },
+      {
+        "type": "action",
+        "description": "Approve a property after examination"
+      },
+      {
+        "type": "assertion",
+        "description": "Property verification status updates to approved"
+      },
+      {
+        "type": "action",
+        "description": "Reject a property submission"
+      },
+      {
+        "type": "assertion",
+        "description": "Property status updates to rejected with proper logging"
+      }
+    ]
+  },
+  {
+    "id": "TC014",
+    "title": "Secure File Upload via Cloudinary Integration",
+    "description": "Verify that images and documents are uploaded securely using Cloudinary and validated at backend.",
+    "category": "security",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Attempt to upload valid image and document files during profile, KYC, property, or company workflows"
+      },
+      {
+        "type": "assertion",
+        "description": "Files are uploaded without errors and URLs are stored securely"
+      },
+      {
+        "type": "action",
+        "description": "Attempt to upload disallowed file types or excessively large files"
+      },
+      {
+        "type": "assertion",
+        "description": "Uploads are rejected with validation errors"
       }
     ]
   },
   {
     "id": "TC015",
-    "title": "Company profile update after registration",
-    "description": "Verify that companies can update their profile details and uploaded documents after registration.",
-    "category": "functional",
-    "priority": "Medium",
-    "steps": [
-      {
-        "type": "action",
-        "description": "Log in as a registered company"
-      },
-      {
-        "type": "action",
-        "description": "Navigate to company profile management page"
-      },
-      {
-        "type": "action",
-        "description": "Modify profile details and upload new documents"
-      },
-      {
-        "type": "action",
-        "description": "Save changes"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify updates are saved and documents replace previous uploads"
-      }
-    ]
-  },
-  {
-    "id": "TC016",
-    "title": "Admin views user list and verifies user details",
-    "description": "Verify that admin can view a list of users with their verification statuses and details correctly displayed.",
-    "category": "functional",
-    "priority": "High",
-    "steps": [
-      {
-        "type": "action",
-        "description": "Log in as an administrator"
-      },
-      {
-        "type": "action",
-        "description": "Navigate to user management interface"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify that user list shows all registered users with correct details and verification statuses"
-      }
-    ]
-  },
-  {
-    "id": "TC017",
-    "title": "Admin approves or rejects verification requests",
-    "description": "Verify that admin can approve or reject identity verifications and property registrations with status updates reflected on user accounts.",
-    "category": "functional",
-    "priority": "High",
-    "steps": [
-      {
-        "type": "action",
-        "description": "Log in as admin"
-      },
-      {
-        "type": "action",
-        "description": "Navigate to verification approval dashboard"
-      },
-      {
-        "type": "action",
-        "description": "Review pending user identity and property verifications"
-      },
-      {
-        "type": "action",
-        "description": "Approve and reject sample verification requests"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify that verification statuses update accordingly in user profiles"
-      }
-    ]
-  },
-  {
-    "id": "TC018",
-    "title": "Admin reviews platform analytics dashboard",
-    "description": "Verify that admin can access analytics dashboard displaying users, properties, transactions, and other platform statistics correctly.",
-    "category": "functional",
-    "priority": "Medium",
-    "steps": [
-      {
-        "type": "action",
-        "description": "Log in as admin"
-      },
-      {
-        "type": "action",
-        "description": "Navigate to analytics dashboard"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify that dashboard loads and data visualizations show accurate platform metrics"
-      }
-    ]
-  },
-  {
-    "id": "TC019",
-    "title": "File upload validation and handling",
-    "description": "Verify that image and document uploads are validated on backend and securely stored via Cloudinary integration, rejecting invalid or malicious files.",
-    "category": "security",
-    "priority": "High",
-    "steps": [
-      {
-        "type": "action",
-        "description": "Attempt to upload supported image and document files on relevant upload forms"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify uploads succeed and files stored in Cloudinary"
-      },
-      {
-        "type": "action",
-        "description": "Attempt to upload unsupported or malicious file types"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify that upload is rejected with error message"
-      }
-    ]
-  },
-  {
-    "id": "TC020",
-    "title": "Frontend pages render correctly and interact with API",
-    "description": "Verify that all main frontend pages and components render without error and communicate properly with backend APIs for data retrieval and submission.",
+    "title": "Frontend UI Rendering and API Communication",
+    "description": "Verify frontend pages and reusable components render correctly and communicate with backend APIs seamlessly.",
     "category": "ui",
-    "priority": "High",
+    "priority": "Medium",
     "steps": [
       {
         "type": "action",
-        "description": "Navigate through pages: signup, login, dashboard, verify-identity, property-verification"
+        "description": "Access signup, login, dashboard, verify-identity, property-verification pages in browser"
       },
       {
         "type": "assertion",
-        "description": "Verify that page content loads correctly without layout or rendering issues"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify that user interactions submit and receive correct responses from backend APIs"
-      }
-    ]
-  },
-  {
-    "id": "TC021",
-    "title": "JWT token is invalidated on logout",
-    "description": "Verify that user logout invalidates the JWT token and restricts access to protected routes until new login.",
-    "category": "security",
-    "priority": "High",
-    "steps": [
-      {
-        "type": "action",
-        "description": "Log in as a user to obtain JWT token"
+        "description": "All pages load without errors and display components properly"
       },
       {
         "type": "action",
-        "description": "Perform logout action"
+        "description": "Perform actions on frontend such as registration, login, profile update, document upload, property CRUD"
       },
       {
         "type": "assertion",
-        "description": "Verify JWT token is removed from client storage"
-      },
-      {
-        "type": "action",
-        "description": "Try accessing protected API endpoints or pages"
+        "description": "Frontend sends correct API requests and handles responses successfully"
       },
       {
         "type": "assertion",
-        "description": "Verify access is denied and user is redirected to login"
+        "description": "UI updates reflect changes from backend responses appropriately"
       }
     ]
   }
