@@ -47,6 +47,9 @@ const Navbar = () => {
     // Clear localStorage
     localStorage.removeItem('isLoggedIn');
     localStorage.removeItem('identityVerified');
+    localStorage.removeItem('carbonCoins');
+    localStorage.removeItem('token');
+    localStorage.removeItem('userName');
     setIsLoggedIn(false);
     router.push('/login');
   };

@@ -33,6 +33,7 @@ const DashboardPage = () => {
         // Fetch user profile
         const profileResponse = await apiClient.getProfile();
         setUserData(profileResponse.data);
+        console.log(profileResponse.data)
 
         // Check if user is verified from the profile response
         const isUserVerified = profileResponse.data.verified;
