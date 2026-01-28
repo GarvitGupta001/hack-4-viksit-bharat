@@ -14,6 +14,7 @@ const DashboardPage = () => {
   const [userData, setUserData] = useState(null);
   const [carbonCoins, setCarbonCoins] = useState(0);
   const [assetsCount, setAssetsCount] = useState(0);
+  const [propertyStatus, setPropertyStatus] = useState('Pending');
   const router = useRouter();
 
   // Check authentication status and fetch user data on component mount
@@ -48,12 +49,13 @@ const DashboardPage = () => {
           return;
         }
 
-        // Fetch carbon coin balance
-        const coinsResponse = await apiClient.getCarbonCoinBalance();
-        setCarbonCoins(coinsResponse.data.amount || 0);
+        // Fetch carbon coin balance from localStorage (updated after property verification)
+        const storedCarbonCoins = localStorage.getItem('carbonCoins');
+        setCarbonCoins(storedCarbonCoins ? parseInt(storedCarbonCoins) : 0);
 
-        // Update localStorage with current carbon coins
-        localStorage.setItem('carbonCoins', coinsResponse.data.amount || 0);
+        // Set property status based on localStorage or default to pending
+        const storedPropertyStatus = localStorage.getItem('propertyStatus');
+        setPropertyStatus(storedPropertyStatus || 'Pending');
 
         setLoading(false);
       } catch (error) {
@@ -120,14 +122,14 @@ const DashboardPage = () => {
               </div>
 
               <div className="dashboard-card">
-                <h3>Verified Status</h3>
-                <p className="card-value">{userData?.verified ? 'Yes' : 'No'}</p>
+                <h3>Property Status</h3>
+                <p className="card-value">{propertyStatus}</p>
               </div>
             </div>
 
             <div className="status-text" style={{fontSize: "1rem"}}>
               {userData?.type === 'seller'
-                ? 'Property verification pending. Upload documents to earn carbon credits.'
+                ? `Your property is ${propertyStatus.toLowerCase()}. You currently have ${carbonCoins} carbon credits.`
                 : 'Browse available carbon credits from verified sellers.'}
             </div>
 

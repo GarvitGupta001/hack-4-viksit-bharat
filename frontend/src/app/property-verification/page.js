@@ -8,146 +8,188 @@ import Link from 'next/link';
 import apiClient from '@/services/api';
 
 const PropertyVerificationPage = () => {
-  const [step, setStep] = useState(1); // Track current step
   const [formData, setFormData] = useState({
-    title: '',
-    description: '',
-    address: '',
-    areaInSqFt: '',
-    boundaryCoordinates: [] // Will be an array of {lat, lng} objects
+    propertyDocument: null,
+    images: [],
+    boundaryCoordinates: '',
+    areaInHectares: ''
   });
-  const [images, setImages] = useState([]);
   const [previewImages, setPreviewImages] = useState([]);
   const [errors, setErrors] = useState({});
   const [isLoading, setIsLoading] = useState(false);
+  const [isVerified, setIsVerified] = useState(false);
   const router = useRouter();
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setFormData({
-      ...formData,
-      [name]: value
-    });
 
-    // Clear error when user starts typing
-    if (errors[name]) {
-      setErrors({
-        ...errors,
-        [name]: ''
+    if (name === 'areaInHectares') {
+      setFormData({
+        ...formData,
+        [name]: value
       });
+    } else if (name === 'boundaryCoordinates') {
+      setFormData({
+        ...formData,
+        [name]: value
+      });
+
+      // Clear error when user starts typing
+      if (errors[name]) {
+        setErrors({
+          ...errors,
+          [name]: ''
+        });
+      }
     }
   };
 
-  const handleImageChange = (e) => {
-    const files = Array.from(e.target.files);
-    
-    // Validate file types
-    const validFiles = files.filter(file => 
-      file.type.match('image/jpeg') || file.type.match('image/png')
-    );
+  const handleFileChange = (e) => {
+    const { name, files } = e.target;
 
-    if (validFiles.length !== files.length) {
-      setErrors({
-        ...errors,
-        images: 'Only JPG and PNG files are allowed'
+    if (name === 'propertyDocument') {
+      if (files && files[0]) {
+        // Validate PDF file
+        if (files[0].type !== 'application/pdf') {
+          setErrors({
+            ...errors,
+            propertyDocument: 'Only PDF files are allowed'
+          });
+          return;
+        }
+
+        setFormData({
+          ...formData,
+          propertyDocument: files[0]
+        });
+
+        // Clear error when user selects a file
+        if (errors.propertyDocument) {
+          setErrors({
+            ...errors,
+            propertyDocument: ''
+          });
+        }
+      }
+    } else if (name === 'images') {
+      const selectedFiles = Array.from(files);
+
+      // Validate image files
+      const validFiles = selectedFiles.filter(file =>
+        file.type.match('image/jpeg') || file.type.match('image/png')
+      );
+
+      if (validFiles.length !== selectedFiles.length) {
+        setErrors({
+          ...errors,
+          images: 'Only JPG and PNG files are allowed'
+        });
+      }
+
+      // Add valid files to state
+      setFormData({
+        ...formData,
+        images: [...formData.images, ...validFiles]
       });
+
+      // Create previews for valid files
+      validFiles.forEach(file => {
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          setPreviewImages(prev => [...prev, reader.result]);
+        };
+        reader.readAsDataURL(file);
+      });
+
+      // Clear error when user selects files
+      if (errors.images) {
+        setErrors({
+          ...errors,
+          images: ''
+        });
+      }
     }
-
-    // Add valid files to state
-    setImages(prev => [...prev, ...validFiles]);
-
-    // Create previews for valid files
-    validFiles.forEach(file => {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setPreviewImages(prev => [...prev, reader.result]);
-      };
-      reader.readAsDataURL(file);
-    });
   };
 
   const removeImage = (index) => {
-    setImages(prev => prev.filter((_, i) => i !== index));
-    setPreviewImages(prev => prev.filter((_, i) => i !== index));
+    const newImages = [...formData.images];
+    newImages.splice(index, 1);
+    setFormData({
+      ...formData,
+      images: newImages
+    });
+
+    const newPreviews = [...previewImages];
+    newPreviews.splice(index, 1);
+    setPreviewImages(newPreviews);
   };
 
-  const validateStep1 = () => {
+  const validateForm = () => {
     const newErrors = {};
 
-    if (!formData.title.trim()) {
-      newErrors.title = 'Title is required';
+    if (!formData.propertyDocument) {
+      newErrors.propertyDocument = 'Property document is required';
     }
 
-    if (!formData.description.trim()) {
-      newErrors.description = 'Description is required';
+    if (formData.images.length === 0) {
+      newErrors.images = 'At least one image is required';
     }
 
-    if (!formData.address.trim()) {
-      newErrors.address = 'Address is required';
+    if (!formData.boundaryCoordinates.trim()) {
+      newErrors.boundaryCoordinates = 'Boundary coordinates are required';
+    } else {
+      try {
+        const parsedCoords = JSON.parse(formData.boundaryCoordinates);
+        if (!Array.isArray(parsedCoords)) {
+          newErrors.boundaryCoordinates = 'Coordinates must be in JSON array format';
+        } else if (parsedCoords.length < 3) {
+          newErrors.boundaryCoordinates = 'At least 3 coordinate pairs are required to form a polygon';
+        } else {
+          // Validate each coordinate pair
+          for (const coord of parsedCoords) {
+            if (!Array.isArray(coord) || coord.length !== 2 ||
+                typeof coord[0] !== 'number' || typeof coord[1] !== 'number') {
+              newErrors.boundaryCoordinates = 'Each coordinate must be in [longitude, latitude] format';
+              break;
+            }
+          }
+        }
+      } catch (e) {
+        newErrors.boundaryCoordinates = 'Invalid JSON format for coordinates';
+      }
     }
 
-    if (!formData.areaInSqFt || isNaN(formData.areaInSqFt) || parseFloat(formData.areaInSqFt) <= 0) {
-      newErrors.areaInSqFt = 'Valid area in sq ft is required';
+    if (!formData.areaInHectares || isNaN(formData.areaInHectares) || parseFloat(formData.areaInHectares) <= 0) {
+      newErrors.areaInHectares = 'Valid area in hectares is required';
     }
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
-  const validateStep2 = () => {
-    if (images.length === 0) {
-      setErrors({ images: 'At least one image is required' });
-      return false;
-    }
-    return true;
-  };
-
-  const handleNext = () => {
-    if (step === 1) {
-      if (validateStep1()) {
-        setStep(2);
-      }
-    } else if (step === 2) {
-      if (validateStep2()) {
-        setStep(3);
-      }
-    }
-  };
-
-  const handlePrevious = () => {
-    if (step > 1) {
-      setStep(step - 1);
-    }
-  };
-
   const handleSubmit = async () => {
-    if (!validateStep1() || !validateStep2()) {
+    if (!validateForm()) {
       return;
     }
 
     setIsLoading(true);
 
-    try {
-      // Prepare property data
-      const propertyData = {
-        ...formData,
-        areaInSqFt: parseFloat(formData.areaInSqFt),
-        boundaryCoordinates: formData.boundaryCoordinates // This would typically come from a map interface
-      };
+    // Simulate verification process with 2-second delay
+    setTimeout(async () => {
+      try {
+        // Update carbon coins and property status in localStorage
+        localStorage.setItem('carbonCoins', '150'); // Sample number of credits
+        localStorage.setItem('propertyStatus', 'Verified'); // Set property status as verified
 
-      // Call API to create property
-      const response = await apiClient.createProperty(propertyData, images);
-
-      // Show success message
-      alert(`Property created successfully! You earned ${response.data.coinsEarned} carbon coins!`);
-
-      // Redirect to dashboard
-      router.push('/dashboard');
-    } catch (error) {
-      console.error('Property creation error:', error);
-      setErrors({ api: error.message || 'Property creation failed. Please try again.' });
-      setIsLoading(false);
-    }
+        // Redirect to dashboard
+        setIsVerified(true);
+        router.push('/dashboard');
+      } catch (error) {
+        console.error('Verification error:', error);
+        setErrors({ api: error.message || 'Verification failed. Please try again.' });
+        setIsLoading(false);
+      }
+    }, 2000);
   };
 
   return (
@@ -162,233 +204,123 @@ const PropertyVerificationPage = () => {
               <p className="dashboard-subtitle">Register and verify your green assets</p>
             </div>
 
-            <div className="progress-indicator" style={{ textAlign: 'center', marginBottom: '2rem' }}>
-              <div style={{ display: 'flex', justifyContent: 'center', gap: '1rem' }}>
-                {[1, 2, 3].map((s) => (
-                  <div 
-                    key={s} 
-                    style={{
-                      padding: '0.5rem 1rem',
-                      borderRadius: '9999px',
-                      backgroundColor: step >= s ? '#4caf50' : '#e0e0e0',
-                      color: step >= s ? 'white' : '#757575',
-                      fontWeight: 'bold'
-                    }}
-                  >
-                    Step {s}
-                  </div>
-                ))}
-              </div>
-            </div>
-
             <div className="dashboard-content">
-              {step === 1 && (
-                <div className="step-content">
-                  <h2 style={{ textAlign: 'center', marginBottom: '2rem', color: '#2e7d32' }}>Asset Information</h2>
-                  
-                  {errors.api && (
-                    <div className="error-message" style={{ marginBottom: '1rem' }}>
-                      {errors.api}
-                    </div>
-                  )}
+              <div className="step-content">
+                <h2 style={{ textAlign: 'center', marginBottom: '2rem', color: '#2e7d32' }}>Asset Information</h2>
 
-                  <div className="form-group">
-                    <label htmlFor="title">Property Title *</label>
-                    <input
-                      type="text"
-                      id="title"
-                      name="title"
-                      value={formData.title}
-                      onChange={handleInputChange}
-                      className={errors.title ? 'error' : ''}
-                      placeholder="e.g., 500 Mango Trees Farm"
-                      disabled={isLoading}
-                    />
-                    {errors.title && <span className="error-message">{errors.title}</span>}
+                {errors.api && (
+                  <div className="error-message" style={{ marginBottom: '1rem' }}>
+                    {errors.api}
                   </div>
-
-                  <div className="form-group">
-                    <label htmlFor="description">Description *</label>
-                    <textarea
-                      id="description"
-                      name="description"
-                      value={formData.description}
-                      onChange={handleInputChange}
-                      className={errors.description ? 'error' : ''}
-                      placeholder="Describe your green asset and its environmental benefits..."
-                      rows="4"
-                      disabled={isLoading}
-                    ></textarea>
-                    {errors.description && <span className="error-message">{errors.description}</span>}
-                  </div>
-
-                  <div className="form-group">
-                    <label htmlFor="address">Address *</label>
-                    <input
-                      type="text"
-                      id="address"
-                      name="address"
-                      value={formData.address}
-                      onChange={handleInputChange}
-                      className={errors.address ? 'error' : ''}
-                      placeholder="Full address of the property"
-                      disabled={isLoading}
-                    />
-                    {errors.address && <span className="error-message">{errors.address}</span>}
-                  </div>
-
-                  <div className="form-group">
-                    <label htmlFor="areaInSqFt">Area in Square Feet *</label>
-                    <input
-                      type="number"
-                      id="areaInSqFt"
-                      name="areaInSqFt"
-                      value={formData.areaInSqFt}
-                      onChange={handleInputChange}
-                      className={errors.areaInSqFt ? 'error' : ''}
-                      placeholder="Enter area in sq ft"
-                      min="1"
-                      disabled={isLoading}
-                    />
-                    {errors.areaInSqFt && <span className="error-message">{errors.areaInSqFt}</span>}
-                  </div>
-
-                  <div className="form-group">
-                    <label htmlFor="boundaryCoordinates">Boundary Coordinates (Optional)</label>
-                    <textarea
-                      id="boundaryCoordinates"
-                      name="boundaryCoordinates"
-                      value={JSON.stringify(formData.boundaryCoordinates)}
-                      onChange={(e) => {
-                        try {
-                          const parsed = JSON.parse(e.target.value);
-                          if (Array.isArray(parsed)) {
-                            setFormData({...formData, boundaryCoordinates: parsed});
-                          }
-                        } catch (error) {
-                          // Ignore invalid JSON
-                        }
-                      }}
-                      placeholder='Enter coordinates in format: [{"lat": 22.5645, "lng": 72.9289}, {"lat": 22.5648, "lng": 72.9295}]'
-                      rows="4"
-                      disabled={isLoading}
-                    ></textarea>
-                  </div>
-                </div>
-              )}
-
-              {step === 2 && (
-                <div className="step-content">
-                  <h2 style={{ textAlign: 'center', marginBottom: '2rem', color: '#2e7d32' }}>Documentation</h2>
-                  
-                  {errors.api && (
-                    <div className="error-message" style={{ marginBottom: '1rem' }}>
-                      {errors.api}
-                    </div>
-                  )}
-
-                  <div className="form-group">
-                    <label>Upload Supporting Images *</label>
-                    <input
-                      type="file"
-                      multiple
-                      accept=".jpg,.jpeg,.png"
-                      onChange={handleImageChange}
-                      className={errors.images ? 'error' : ''}
-                      disabled={isLoading}
-                    />
-                    {errors.images && <span className="error-message">{errors.images}</span>}
-                    
-                    <div style={{ marginTop: '1rem', display: 'flex', flexWrap: 'wrap', gap: '1rem' }}>
-                      {previewImages.map((preview, index) => (
-                        <div key={index} style={{ position: 'relative', width: '150px', height: '150px' }}>
-                          <img 
-                            src={preview} 
-                            alt={`Preview ${index}`} 
-                            className="preview-image" 
-                            style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '8px' }}
-                          />
-                          <button
-                            type="button"
-                            onClick={() => removeImage(index)}
-                            style={{
-                              position: 'absolute',
-                              top: '-8px',
-                              right: '-8px',
-                              background: '#f44336',
-                              color: 'white',
-                              border: 'none',
-                              borderRadius: '50%',
-                              width: '24px',
-                              height: '24px',
-                              cursor: 'pointer'
-                            }}
-                          >
-                            ×
-                          </button>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {step === 3 && (
-                <div className="step-content">
-                  <h2 style={{ textAlign: 'center', marginBottom: '2rem', color: '#2e7d32' }}>Review & Submit</h2>
-                  
-                  <div className="review-summary">
-                    <h3>Property Details:</h3>
-                    <p><strong>Title:</strong> {formData.title}</p>
-                    <p><strong>Description:</strong> {formData.description}</p>
-                    <p><strong>Address:</strong> {formData.address}</p>
-                    <p><strong>Area:</strong> {formData.areaInSqFt} sq ft</p>
-                    <p><strong>Images:</strong> {images.length} uploaded</p>
-                  </div>
-                  
-                  <div style={{ marginTop: '2rem', textAlign: 'center' }}>
-                    <p>By submitting, you agree that the information provided is accurate and that you have the right to register this property.</p>
-                  </div>
-                </div>
-              )}
-
-              <div className="step-navigation" style={{ display: 'flex', justifyContent: 'space-between', marginTop: '2rem' }}>
-                <button
-                  onClick={handlePrevious}
-                  className="action-button secondary"
-                  disabled={step === 1 || isLoading}
-                  style={{ minWidth: '120px' }}
-                >
-                  Previous
-                </button>
-
-                {step < 3 ? (
-                  <button
-                    onClick={handleNext}
-                    className="action-button primary"
-                    disabled={isLoading}
-                    style={{ minWidth: '120px' }}
-                  >
-                    Next
-                  </button>
-                ) : (
-                  <button
-                    onClick={handleSubmit}
-                    className="action-button primary"
-                    disabled={isLoading}
-                    style={{ minWidth: '120px' }}
-                  >
-                    {isLoading ? 'Submitting...' : 'Submit Property'}
-                  </button>
                 )}
+
+                <div className="form-group">
+                  <label style={{color:"white"}} htmlFor="propertyDocument">Property Document (PDF) *</label>
+                  <input
+                    type="file"
+                    id="propertyDocument"
+                    name="propertyDocument"
+                    accept=".pdf"
+                    onChange={handleFileChange}
+                    className={errors.propertyDocument ? 'error' : ''}
+                    disabled={isLoading}
+                  />
+                  {errors.propertyDocument && <span className="error-message">{errors.propertyDocument}</span>}
+                </div>
+
+                <div className="form-group">
+                  <label style={{color:"white"}} htmlFor="images">Property Images (Geotagged) *</label>
+                  <input
+                    type="file"
+                    id="images"
+                    name="images"
+                    accept=".jpg,.jpeg,.png"
+                    multiple
+                    onChange={handleFileChange}
+                    className={errors.images ? 'error' : ''}
+                    disabled={isLoading}
+                  />
+                  {errors.images && <span className="error-message">{errors.images}</span>}
+
+                  <div style={{ marginTop: '1rem', display: 'flex', flexWrap: 'wrap', gap: '1rem' }}>
+                    {previewImages.map((preview, index) => (
+                      <div key={index} style={{ position: 'relative', width: '150px', height: '150px' }}>
+                        <img
+                          src={preview}
+                          alt={`Preview ${index}`}
+                          className="preview-image"
+                          style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '8px' }}
+                        />
+                        <button
+                          type="button"
+                          onClick={() => removeImage(index)}
+                          style={{
+                            position: 'absolute',
+                            top: '-8px',
+                            right: '-8px',
+                            background: '#f44336',
+                            color: 'white',
+                            border: 'none',
+                            borderRadius: '50%',
+                            width: '24px',
+                            height: '24px',
+                            cursor: 'pointer'
+                          }}
+                        >
+                          ×
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="form-group">
+                  <label style={{color:"white"}} htmlFor="boundaryCoordinates">Boundary Coordinates (JSON Array) *</label>
+                  <textarea
+                    id="boundaryCoordinates"
+                    name="boundaryCoordinates"
+                    value={formData.boundaryCoordinates}
+                    onChange={handleInputChange}
+                    className={errors.boundaryCoordinates ? 'error' : ''}
+                    placeholder={`Enter coordinates as a JSON array of [longitude, latitude] pairs\nExample: [[77.185, 28.565], [77.200, 28.565], [77.200, 28.575], [77.185, 28.575]]\nAt least 3 coordinate pairs are required to form a polygon`}
+                    rows="6"
+                    disabled={isLoading}
+                  ></textarea>
+                  {errors.boundaryCoordinates && <span className="error-message">{errors.boundaryCoordinates}</span>}
+                </div>
+
+                <div className="form-group">
+                  <label style={{color:"white"}} htmlFor="areaInHectares">Area of Land (Hectares) *</label>
+                  <input
+                    type="number"
+                    id="areaInHectares"
+                    name="areaInHectares"
+                    value={formData.areaInHectares}
+                    onChange={handleInputChange}
+                    className={errors.areaInHectares ? 'error' : ''}
+                    placeholder="Enter area in hectares"
+                    min="0.01"
+                    step="0.01"
+                    disabled={isLoading}
+                  />
+                  {errors.areaInHectares && <span className="error-message">{errors.areaInHectares}</span>}
+                </div>
               </div>
 
-              <div className="dashboard-actions" style={{ fontSize: "1rem", marginTop: "2rem", display: "flex", gap: "1rem", flexWrap: "wrap" }}>
-                <Link href="/dashboard" className="action-button secondary">
+              <div className="step-navigation" style={{ display: 'flex', justifyContent: 'center', marginTop: '2rem' }}>
+                <button 
+                  onClick={handleSubmit}
+                  className="action-button primary"
+                  disabled={isLoading}
+                  style={{ minWidth: '200px', marginTop:"-2rem" }}
+                >
+                  {isLoading ? 'Verifying...' : 'Submit for Verification'}
+                </button>
+              </div>
+
+              <div className="dashboard-actions" style={{ fontSize: "1rem", marginTop: "2rem", display: "flex", gap: "1rem", flexWrap: "wrap", justifyContent: "center" }}>
+                <Link style={{marginBottom: "3rem"}} href="/dashboard" className="action-button secondary">
                   Back to Dashboard
-                </Link>
-                <Link href="/property-verification/enhanced" className="action-button primary">
-                  Enhanced Verification (with Map)
                 </Link>
               </div>
             </div>
