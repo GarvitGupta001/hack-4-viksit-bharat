@@ -259,23 +259,6 @@ const apiClient = {
             method: "GET",
         });
     },
-
-    // Satellite verification methods
-    async verifyPropertyWithSatellite(propertyId, coordinates) {
-        return this.request("/satellite/verify-property", {
-            method: "POST",
-            body: JSON.stringify({
-                propertyId,
-                coordinates
-            }),
-        });
-    },
-
-    async getSatelliteVerificationResult(propertyId) {
-        return this.request(`/satellite/property/${propertyId}`, {
-            method: "GET",
-        });
-    },
 };
 
 export default apiClient;
