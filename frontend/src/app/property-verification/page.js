@@ -1,5 +1,6 @@
 'use client';
 
+import { motion } from "framer-motion";
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Navbar from '@/components/Navbar';
@@ -194,143 +195,240 @@ const PropertyVerificationPage = () => {
 
   return (
     <div className="page-container">
-      <Navbar />
+        <Navbar />
 
-      <main className="main-content">
-        <div className="container">
-          <div className="dashboard-container">
-            <div className="dashboard-header">
-              <h1 className="dashboard-title" style={{fontSize: "3rem"}}>Property Verification</h1>
-              <p className="dashboard-subtitle">Register and verify your green assets</p>
-            </div>
-
-            <div className="dashboard-content">
-              <div className="step-content">
-                <h2 style={{ textAlign: 'center', marginBottom: '2rem', color: '#2e7d32' }}>Asset Information</h2>
-
-                {errors.api && (
-                  <div className="error-message" style={{ marginBottom: '1rem' }}>
-                    {errors.api}
-                  </div>
+        <main className="main-content">
+            <div className="auth-container" style={{ minHeight: 'calc(100vh - 200px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '2rem 1rem' }}>
+                {profile && profile.verified && (
+                    <div className="info-message" style={{ maxWidth: '440px', width: '100%' }}>
+                        Your identity is already verified. Redirecting to
+                        dashboard...
+                    </div>
                 )}
-
-                <div className="form-group">
-                  <label style={{color:"white"}} htmlFor="propertyDocument">Property Document (PDF) *</label>
-                  <input
-                    type="file"
-                    id="propertyDocument"
-                    name="propertyDocument"
-                    accept=".pdf"
-                    onChange={handleFileChange}
-                    className={errors.propertyDocument ? 'error' : ''}
-                    disabled={isLoading}
-                  />
-                  {errors.propertyDocument && <span className="error-message">{errors.propertyDocument}</span>}
-                </div>
-
-                <div className="form-group">
-                  <label style={{color:"white"}} htmlFor="images">Property Images (Geotagged) *</label>
-                  <input
-                    type="file"
-                    id="images"
-                    name="images"
-                    accept=".jpg,.jpeg,.png"
-                    multiple
-                    onChange={handleFileChange}
-                    className={errors.images ? 'error' : ''}
-                    disabled={isLoading}
-                  />
-                  {errors.images && <span className="error-message">{errors.images}</span>}
-
-                  <div style={{ marginTop: '1rem', display: 'flex', flexWrap: 'wrap', gap: '1rem' }}>
-                    {previewImages.map((preview, index) => (
-                      <div key={index} style={{ position: 'relative', width: '150px', height: '150px' }}>
-                        <img
-                          src={preview}
-                          alt={`Preview ${index}`}
-                          className="preview-image"
-                          style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '8px' }}
-                        />
-                        <button
-                          type="button"
-                          onClick={() => removeImage(index)}
-                          style={{
-                            position: 'absolute',
-                            top: '-8px',
-                            right: '-8px',
-                            background: '#f44336',
-                            color: 'white',
-                            border: 'none',
-                            borderRadius: '50%',
-                            width: '24px',
-                            height: '24px',
-                            cursor: 'pointer'
-                          }}
-                        >
-                          ×
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                <div className="form-group">
-                  <label style={{color:"white"}} htmlFor="boundaryCoordinates">Boundary Coordinates (JSON Array) *</label>
-                  <textarea
-                    id="boundaryCoordinates"
-                    name="boundaryCoordinates"
-                    value={formData.boundaryCoordinates}
-                    onChange={handleInputChange}
-                    className={errors.boundaryCoordinates ? 'error' : ''}
-                    placeholder={`Enter coordinates as a JSON array of [longitude, latitude] pairs\nExample: [[77.185, 28.565], [77.200, 28.565], [77.200, 28.575], [77.185, 28.575]]\nAt least 3 coordinate pairs are required to form a polygon`}
-                    rows="6"
-                    disabled={isLoading}
-                  ></textarea>
-                  {errors.boundaryCoordinates && <span className="error-message">{errors.boundaryCoordinates}</span>}
-                </div>
-
-                <div className="form-group">
-                  <label style={{color:"white"}} htmlFor="areaInHectares">Area of Land (Hectares) *</label>
-                  <input
-                    type="number"
-                    id="areaInHectares"
-                    name="areaInHectares"
-                    value={formData.areaInHectares}
-                    onChange={handleInputChange}
-                    className={errors.areaInHectares ? 'error' : ''}
-                    placeholder="Enter area in hectares"
-                    min="0.01"
-                    step="0.01"
-                    disabled={isLoading}
-                  />
-                  {errors.areaInHectares && <span className="error-message">{errors.areaInHectares}</span>}
-                </div>
-              </div>
-
-              <div className="step-navigation" style={{ display: 'flex', justifyContent: 'center', marginTop: '2rem' }}>
-                <button 
-                  onClick={handleSubmit}
-                  className="action-button primary"
-                  disabled={isLoading}
-                  style={{ minWidth: '200px', marginTop:"-2rem" }}
+                {profile &&
+                !profile.verified &&
+                profile.sellerProfile.aadharUrl &&
+                profile.sellerProfile.selfieUrl ? (
+                    <div className="info-message" style={{ maxWidth: '440px', width: '100%' }}>
+                        Your documents are under review. Please wait for
+                        verification.
+                    </div>
+                ) : (
+                  <motion.div
+                  initial={{ opacity: 0, y: 12 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.35, ease: [0.22, 0.61, 0.36, 1] }}
+                  className="surface-elevated"
+                  style={{
+                    width: "100%",
+                    maxWidth: "460px",
+                    padding: "2.2rem",
+                    borderRadius: "1.25rem",
+                    background: "#ffffff",
+                    boxShadow: "0 20px 60px rgba(15, 23, 42, 0.08)",
+                  }}
                 >
-                  {isLoading ? 'Verifying...' : 'Submit for Verification'}
-                </button>
-              </div>
-
-              <div className="dashboard-actions" style={{ fontSize: "1rem", marginTop: "2rem", display: "flex", gap: "1rem", flexWrap: "wrap", justifyContent: "center" }}>
-                <Link style={{marginBottom: "3rem"}} href="/dashboard" className="action-button secondary">
-                  Back to Dashboard
-                </Link>
-              </div>
+                  <h1
+                    style={{
+                      textAlign: "center",
+                      marginBottom: "0.5rem",
+                      color: "#0f172a",
+                      fontSize: "1.75rem",
+                      fontWeight: 700,
+                    }}
+                  >
+                    Identity Verification
+                  </h1>
+                
+                  <p
+                    style={{
+                      textAlign: "center",
+                      marginBottom: "1.8rem",
+                      fontSize: "0.95rem",
+                      color: "#475569",
+                    }}
+                  >
+                    Upload Aadhaar and a selfie to complete your verification
+                  </p>
+                
+                  {error && (
+                    <div
+                      style={{
+                        padding: "0.8rem 1rem",
+                        marginBottom: "1.2rem",
+                        borderRadius: "0.75rem",
+                        background: "rgba(239, 68, 68, 0.08)",
+                        border: "1px solid rgba(239, 68, 68, 0.25)",
+                        color: "#b91c1c",
+                        fontSize: "0.9rem",
+                      }}
+                    >
+                      {error}
+                    </div>
+                  )}
+                
+                  {verificationStatus && (
+                    <div
+                      style={{
+                        padding: "0.8rem 1rem",
+                        marginBottom: "1.2rem",
+                        borderRadius: "0.75rem",
+                        background: "rgba(16, 185, 129, 0.08)",
+                        border: "1px solid rgba(16, 185, 129, 0.25)",
+                        color: "#047857",
+                        fontSize: "0.9rem",
+                      }}
+                    >
+                      {verificationStatus}
+                    </div>
+                  )}
+                
+                  <div style={{ marginBottom: "1.6rem" }}>
+                    {/* Aadhaar Upload */}
+                    <div style={{ marginBottom: "1.5rem" }}>
+                      <label
+                        style={{
+                          display: "block",
+                          marginBottom: "0.4rem",
+                          fontWeight: 600,
+                          fontSize: "0.9rem",
+                          color: "#0f172a",
+                        }}
+                      >
+                        Aadhaar Image (jpg/png)
+                      </label>
+                
+                      <input
+                        type="file"
+                        accept=".jpg,.jpeg,.png"
+                        onChange={(e) =>
+                          handleImageChange(
+                            e,
+                            setAadhaarImage,
+                            setPreviewAadhaar,
+                            "Aadhaar"
+                          )
+                        }
+                        disabled={isLoading}
+                        style={{
+                          width: "100%",
+                          padding: "0.75rem",
+                          borderRadius: "0.9rem",
+                          border: "1px dashed rgba(15, 23, 42, 0.25)",
+                          background: "#f8fafc",
+                          color: "#0f172a",
+                          fontSize: "0.9rem",
+                          cursor: "pointer",
+                        }}
+                      />
+                
+                      {previewAadhaar && (
+                        <div style={{ marginTop: "0.9rem" }}>
+                          <img
+                            src={previewAadhaar}
+                            alt="Aadhaar Preview"
+                            style={{
+                              width: "100%",
+                              borderRadius: "0.9rem",
+                              border: "1px solid rgba(15, 23, 42, 0.1)",
+                            }}
+                          />
+                        </div>
+                      )}
+                    </div>
+                
+                    {/* Selfie Upload */}
+                    <div>
+                      <label
+                        style={{
+                          display: "block",
+                          marginBottom: "0.4rem",
+                          fontWeight: 600,
+                          fontSize: "0.9rem",
+                          color: "#0f172a",
+                        }}
+                      >
+                        Selfie Image (jpg/png)
+                      </label>
+                
+                      <input
+                        type="file"
+                        accept=".jpg,.jpeg,.png"
+                        onChange={(e) =>
+                          handleImageChange(
+                            e,
+                            setSelfieImage,
+                            setPreviewSelfie,
+                            "Selfie"
+                          )
+                        }
+                        disabled={isLoading}
+                        style={{
+                          width: "100%",
+                          padding: "0.75rem",
+                          borderRadius: "0.9rem",
+                          border: "1px dashed rgba(15, 23, 42, 0.25)",
+                          background: "#f8fafc",
+                          color: "#0f172a",
+                          fontSize: "0.9rem",
+                          cursor: "pointer",
+                        }}
+                      />
+                
+                      {previewSelfie && (
+                        <div style={{ marginTop: "0.9rem" }}>
+                          <img
+                            src={previewSelfie}
+                            alt="Selfie Preview"
+                            style={{
+                              width: "100%",
+                              borderRadius: "0.9rem",
+                              border: "1px solid rgba(15, 23, 42, 0.1)",
+                            }}
+                          />
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                
+                  <button
+                    onClick={handleVerify}
+                    disabled={isLoading}
+                    style={{
+                      width: "100%",
+                      padding: "0.85rem 1.25rem",
+                      borderRadius: "0.9rem",
+                      fontWeight: 600,
+                      fontSize: "1rem",
+                      color: "#ffffff",
+                      background: "linear-gradient(90deg, #10B981, #16A34A)",
+                      border: "none",
+                      cursor: "pointer",
+                      transition: "all 0.2s ease",
+                      opacity: isLoading ? 0.7 : 1,
+                    }}
+                  >
+                    {isLoading ? "Processing…" : "Verify Now"}
+                  </button>
+                
+                  <p
+                    style={{
+                      marginTop: "1.2rem",
+                      fontSize: "0.75rem",
+                      color: "#64748b",
+                      textAlign: "center",
+                    }}
+                  >
+                    🔒 Enterprise-grade encryption · AI-powered document validation
+                  </p>
+                </motion.div>                
+                )}
             </div>
-          </div>
-        </div>
-      </main>
+        </main>
 
-      <Footer />
+        <Footer />
     </div>
-  );
+);
 };
 
 export default PropertyVerificationPage;

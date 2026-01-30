@@ -58,30 +58,51 @@ const Navbar = () => {
     <nav className="navbar">
       <div className="nav-container">
         <div className="nav-logo">
-          <Link href="/" className="logo">
+          <Link href="/" className="logo" style={{
+    fontSize: "2.5rem",
+    fontWeight: "800",
+    color: "#14532d",
+    letterSpacing: "-0.5px",
+    textShadow: "0 4px 12px rgba(34, 197, 94, 0.25)"
+  }}>
             CarbonCoin
           </Link>
         </div>
 
-        <div className="nav-menu">
-        </div>
+        <div className="nav-menu" />
 
         <div className="nav-buttons">
           {isLoggedIn ? (
             <>
               <div className="nav-button coins-btn">
-                <span className="coin-icon"></span>
+                <span className="coin-icon" />
                 <span className="coin-count">{carbonCoins}</span>
               </div>
-              <Link href="/dashboard" className="nav-button dashboard-btn">Dashboard</Link>
-              <button onClick={handleLogout} className="nav-button logout-btn">Logout</button>
+              <Link href="/dashboard" className="nav-button dashboard-btn">
+                Dashboard
+              </Link>
+              <button
+                type="button"
+                onClick={handleLogout}
+                className="nav-button logout-btn"
+              >
+                Logout
+              </button>
             </>
           ) : (
             <>
-              <Link href="/" className="nav-button home-btn">Home</Link>
-              <Link href="/#about" className="nav-button about-btn">About Us</Link>
-              <Link href="/signup" className="nav-button signup-btn">Sign Up</Link>
-              <Link href="/login" className="nav-button login-btn">Login</Link>
+              <Link href="/" className="nav-button home-btn">
+                Home
+              </Link>
+              <Link href="/#about" className="nav-button about-btn">
+                About Us
+              </Link>
+              <Link href="/signup" className="nav-button signup-btn">
+                Sign Up
+              </Link>
+              <Link href="/login" className="nav-button login-btn">
+                Login
+              </Link>
             </>
           )}
         </div>
