@@ -1,6 +1,5 @@
 'use client';
 
-import { motion } from 'framer-motion';
 import { useState } from 'react';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
@@ -140,211 +139,131 @@ const SignupPage = () => {
   return (
     <div className="page-container">
       <Navbar />
-  
+
       <main className="main-content">
-        <div className="min-h-[85vh] flex items-center justify-center px-4 py-10">
-          <motion.div
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.35, ease: [0.22, 0.61, 0.36, 1] }}
-            className="surface-elevated w-full max-w-md p-8 rounded-2xl shadow-xl"
-          >
-            <h1 className="text-2xl font-semibold text-center text-slate-900">
-              Create Account
-            </h1>
-  
-            <p className="text-sm text-slate-500 text-center mt-2 mb-6">
-              Join CarbonCoin and start earning verified carbon credits
-            </p>
-  
+        <div className="auth-container">
+          <div className="auth-form">
+            <h1 className="form-title">Create Account</h1>
+
             {errors.api && (
-              <div className="mb-4 px-4 py-3 rounded-lg bg-red-50 border border-red-200 text-red-700 text-sm">
+              <div className="error-message">
                 {errors.api}
               </div>
             )}
-  
+
             {successMessage && (
-              <div className="mb-4 px-4 py-3 rounded-lg bg-green-50 border border-green-200 text-green-700 text-sm">
+              <div className="success-message">
                 {successMessage}
               </div>
             )}
-  
-            <form onSubmit={handleSubmit} className="space-y-5">
-              {/* Full Name */}
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1" >
-                  Full Name
-                </label>
+
+            <form onSubmit={handleSubmit}>
+              <div className="form-group">
+                <label htmlFor="name">Full Name</label>
                 <input
                   type="text"
+                  id="name"
                   name="name"
                   value={formData.name}
                   onChange={handleChange}
-                  disabled={isLoading}
-                  className={`w-full px-4 py-3 rounded-lg border text-sm text-slate-900 bg-white placeholder:text-slate-400 transition focus:outline-none focus:ring-2 focus:ring-green-500 ${
-                    errors.name ? "border-red-400" : "border-slate-200"
-                  }`}                  
+                  className={errors.name ? 'error' : ''}
                   placeholder="Enter your full name"
+                  disabled={isLoading}
                 />
-                {errors.name && (
-                  <p className="text-xs text-red-600 mt-1">
-                    {errors.name}
-                  </p>
-                )}
+                {errors.name && <span className="error-message">{errors.name}</span>}
               </div>
-  
-              {/* Email */}
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">
-                  Email Address
-                </label>
+
+              <div className="form-group">
+                <label htmlFor="email">Email Address</label>
                 <input
                   type="email"
+                  id="email"
                   name="email"
                   value={formData.email}
                   onChange={handleChange}
-                  disabled={isLoading}
-                  className={`w-full px-4 py-3 rounded-lg border text-sm text-slate-900 bg-white placeholder:text-slate-400 transition focus:outline-none focus:ring-2 focus:ring-green-500 ${
-                    errors.name ? "border-red-400" : "border-slate-200"
-                  }`} 
+                  className={errors.email ? 'error' : ''}
                   placeholder="Enter your email"
+                  disabled={isLoading}
                 />
-                {errors.email && (
-                  <p className="text-xs text-red-600 mt-1">
-                    {errors.email}
-                  </p>
-                )}
+                {errors.email && <span className="error-message">{errors.email}</span>}
               </div>
-  
-              {/* Phone */}
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">
-                  Phone Number
-                </label>
+
+              <div className="form-group">
+                <label htmlFor="phone">Phone Number</label>
                 <input
                   type="tel"
+                  id="phone"
                   name="phone"
                   value={formData.phone}
                   onChange={handleChange}
+                  className={errors.phone ? 'error' : ''}
+                  placeholder="Enter your 10-digit phone number"
                   disabled={isLoading}
-                  className={`w-full px-4 py-3 rounded-lg border text-sm text-slate-900 bg-white placeholder:text-slate-400 transition focus:outline-none focus:ring-2 focus:ring-green-500 ${
-                    errors.name ? "border-red-400" : "border-slate-200"
-                  }`} 
-                  placeholder="Enter your phone number"
                 />
-                {errors.phone && (
-                  <p className="text-xs text-red-600 mt-1">
-                    {errors.phone}
-                  </p>
-                )}
+                {errors.phone && <span className="error-message">{errors.phone}</span>}
               </div>
-  
-              {/* Account Type */}
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">
-                  Account Type
-                </label>
+
+              <div className="form-group">
+                <label htmlFor="type">Account Type</label>
                 <select
+                  id="type"
                   name="type"
                   value={formData.type}
                   onChange={handleChange}
+                  className={errors.type ? 'error' : ''}
                   disabled={isLoading}
-                  className={`w-full px-4 py-3 rounded-lg border text-sm text-slate-900 bg-white placeholder:text-slate-400 transition focus:outline-none focus:ring-2 focus:ring-green-500 ${
-                    errors.name ? "border-red-400" : "border-slate-200"
-                  }`} 
                 >
-                  <option value="seller">
-                    Seller (Farmer/Landowner)
-                  </option>
-                  <option value="company">
-                    Company (Buyer)
-                  </option>
+                  <option value="seller">Seller (Farmer/Landowner)</option>
+                  <option value="company">Company (Buyer)</option>
                 </select>
-                {errors.type && (
-                  <p className="text-xs text-red-600 mt-1">
-                    {errors.type}
-                  </p>
-                )}
+                {errors.type && <span className="error-message">{errors.type}</span>}
               </div>
-  
-              {/* Password */}
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">
-                  Password
-                </label>
+
+              <div className="form-group">
+                <label htmlFor="password">Password</label>
                 <input
                   type="password"
+                  id="password"
                   name="password"
                   value={formData.password}
                   onChange={handleChange}
-                  disabled={isLoading}
-                  className={`w-full px-4 py-3 rounded-lg border text-sm text-slate-900 bg-white placeholder:text-slate-400 transition focus:outline-none focus:ring-2 focus:ring-green-500 ${
-                    errors.name ? "border-red-400" : "border-slate-200"
-                  }`} 
+                  className={errors.password ? 'error' : ''}
                   placeholder="Create a password"
+                  disabled={isLoading}
                 />
-                {errors.password && (
-                  <p className="text-xs text-red-600 mt-1">
-                    {errors.password}
-                  </p>
-                )}
+                {errors.password && <span className="error-message">{errors.password}</span>}
               </div>
-  
-              {/* Confirm Password */}
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">
-                  Confirm Password
-                </label>
+
+              <div className="form-group">
+                <label htmlFor="confirmPassword">Confirm Password</label>
                 <input
                   type="password"
+                  id="confirmPassword"
                   name="confirmPassword"
                   value={formData.confirmPassword}
                   onChange={handleChange}
-                  disabled={isLoading}
-                  className={`w-full px-4 py-3 rounded-lg border text-sm text-slate-900 bg-white placeholder:text-slate-400 transition focus:outline-none focus:ring-2 focus:ring-green-500 ${
-                    errors.name ? "border-red-400" : "border-slate-200"
-                  }`} 
+                  className={errors.confirmPassword ? 'error' : ''}
                   placeholder="Confirm your password"
+                  disabled={isLoading}
                 />
-                {errors.confirmPassword && (
-                  <p className="text-xs text-red-600 mt-1">
-                    {errors.confirmPassword}
-                  </p>
-                )}
+                {errors.confirmPassword && <span className="error-message">{errors.confirmPassword}</span>}
               </div>
-  
-              {/* Submit */}
-              <button
-                type="submit"
-                disabled={isLoading}
-                className="w-full py-3 rounded-lg text-sm font-semibold text-white bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-600 hover:to-green-700 transition transform hover:-translate-y-[1px] disabled:opacity-60 disabled:cursor-not-allowed"
-              >
-                {isLoading ? "Creating Account..." : "Sign Up"}
+
+              <button type="submit" className="submit-button" disabled={isLoading}>
+                {isLoading ? 'Creating Account...' : 'Sign Up'}
               </button>
             </form>
-  
-            <div className="mt-6 pt-5 border-t border-slate-100 text-center">
-              <p className="text-sm text-slate-500">
-                Already have an account?{" "}
-                <Link
-                  href="/login"
-                  className="text-green-600 font-medium hover:underline"
-                >
-                  Log in
-                </Link>
-              </p>
+
+            <div className="auth-footer">
+              <p style={{color:"black"}}>Already have an account? <Link href="/login" className="auth-link">Log in</Link></p>
             </div>
-  
-            <p className="mt-4 text-xs text-slate-400 text-center">
-              Secure authentication · Enterprise-grade data protection
-            </p>
-          </motion.div>
+          </div>
         </div>
       </main>
-  
+
       <Footer />
     </div>
-  );  
+  );
 };
 
 export default SignupPage;

@@ -15,7 +15,6 @@ const DashboardPage = () => {
   const [carbonCoins, setCarbonCoins] = useState(0);
   const [properties, setProperties] = useState([]);
   const [assetsCount, setAssetsCount] = useState(0);
-  const [propertyStatus, setPropertyStatus] = useState('Pending');
   const router = useRouter();
 
   // Check authentication status and fetch user data on component mount
@@ -50,13 +49,12 @@ const DashboardPage = () => {
           return;
         }
 
-        // Fetch carbon coin balance from localStorage (updated after property verification)
-        const storedCarbonCoins = localStorage.getItem('carbonCoins');
-        setCarbonCoins(storedCarbonCoins ? parseInt(storedCarbonCoins) : 0);
+        // Fetch carbon coin balance
+        const coinsResponse = await apiClient.getCarbonCoinBalance();
+        setCarbonCoins(coinsResponse.data.amount || 0);
 
-        // Set property status based on localStorage or default to pending
-        const storedPropertyStatus = localStorage.getItem('propertyStatus');
-        setPropertyStatus(storedPropertyStatus || 'Pending');
+        // Update localStorage with current carbon coins
+        localStorage.setItem('carbonCoins', coinsResponse.data.amount || 0);
 
         // Fetch user's properties if they are a seller
         if (profileResponse.data.type === 'seller') {
@@ -130,8 +128,8 @@ const DashboardPage = () => {
               </div>
 
               <div className="dashboard-card">
-                <h3>Property Status</h3>
-                <p className="card-value">{propertyStatus}</p>
+                <h3>Verified Status</h3>
+                <p className="card-value">{userData?.verified ? 'Yes' : 'No'}</p>
               </div>
 
               {userData?.type === 'seller' && (
@@ -173,7 +171,7 @@ const DashboardPage = () => {
             {/* Status message */}
             <div className="status-text" style={{fontSize: "1rem", marginBottom: "2rem"}}>
               {userData?.type === 'seller'
-                ? `Your property is ${propertyStatus.toLowerCase()}. You currently have ${carbonCoins} carbon credits.`
+                ? 'Manage your properties and verify them using satellite imagery to earn carbon credits.'
                 : 'Browse available carbon credits from verified sellers.'}
             </div>
 

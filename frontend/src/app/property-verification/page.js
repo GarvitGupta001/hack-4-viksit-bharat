@@ -1,6 +1,5 @@
 'use client';
 
-import { motion } from "framer-motion";
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Navbar from '@/components/Navbar';
@@ -9,159 +8,86 @@ import Link from 'next/link';
 import apiClient from '@/services/api';
 
 const PropertyVerificationPage = () => {
+  const [step, setStep] = useState(1); // Track current step
   const [formData, setFormData] = useState({
-    propertyDocument: null,
-    images: [],
-    boundaryCoordinates: '',
-    areaInHectares: ''
+    title: '',
+    description: '',
+    address: '',
+    areaInSqFt: '',
+    boundaryCoordinates: [] // Will be an array of {lat, lng} objects
   });
+  const [images, setImages] = useState([]);
   const [previewImages, setPreviewImages] = useState([]);
   const [errors, setErrors] = useState({});
   const [isLoading, setIsLoading] = useState(false);
-  const [isVerified, setIsVerified] = useState(false);
   const router = useRouter();
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
+    setFormData({
+      ...formData,
+      [name]: value
+    });
 
-    if (name === 'areaInHectares') {
-      setFormData({
-        ...formData,
-        [name]: value
+    // Clear error when user starts typing
+    if (errors[name]) {
+      setErrors({
+        ...errors,
+        [name]: ''
       });
-    } else if (name === 'boundaryCoordinates') {
-      setFormData({
-        ...formData,
-        [name]: value
-      });
-
-      // Clear error when user starts typing
-      if (errors[name]) {
-        setErrors({
-          ...errors,
-          [name]: ''
-        });
-      }
     }
   };
 
-  const handleFileChange = (e) => {
-    const { name, files } = e.target;
+  const handleImageChange = (e) => {
+    const files = Array.from(e.target.files);
+    
+    // Validate file types
+    const validFiles = files.filter(file => 
+      file.type.match('image/jpeg') || file.type.match('image/png')
+    );
 
-    if (name === 'propertyDocument') {
-      if (files && files[0]) {
-        // Validate PDF file
-        if (files[0].type !== 'application/pdf') {
-          setErrors({
-            ...errors,
-            propertyDocument: 'Only PDF files are allowed'
-          });
-          return;
-        }
-
-        setFormData({
-          ...formData,
-          propertyDocument: files[0]
-        });
-
-        // Clear error when user selects a file
-        if (errors.propertyDocument) {
-          setErrors({
-            ...errors,
-            propertyDocument: ''
-          });
-        }
-      }
-    } else if (name === 'images') {
-      const selectedFiles = Array.from(files);
-
-      // Validate image files
-      const validFiles = selectedFiles.filter(file =>
-        file.type.match('image/jpeg') || file.type.match('image/png')
-      );
-
-      if (validFiles.length !== selectedFiles.length) {
-        setErrors({
-          ...errors,
-          images: 'Only JPG and PNG files are allowed'
-        });
-      }
-
-      // Add valid files to state
-      setFormData({
-        ...formData,
-        images: [...formData.images, ...validFiles]
+    if (validFiles.length !== files.length) {
+      setErrors({
+        ...errors,
+        images: 'Only JPG and PNG files are allowed'
       });
-
-      // Create previews for valid files
-      validFiles.forEach(file => {
-        const reader = new FileReader();
-        reader.onloadend = () => {
-          setPreviewImages(prev => [...prev, reader.result]);
-        };
-        reader.readAsDataURL(file);
-      });
-
-      // Clear error when user selects files
-      if (errors.images) {
-        setErrors({
-          ...errors,
-          images: ''
-        });
-      }
     }
+
+    // Add valid files to state
+    setImages(prev => [...prev, ...validFiles]);
+
+    // Create previews for valid files
+    validFiles.forEach(file => {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setPreviewImages(prev => [...prev, reader.result]);
+      };
+      reader.readAsDataURL(file);
+    });
   };
 
   const removeImage = (index) => {
-    const newImages = [...formData.images];
-    newImages.splice(index, 1);
-    setFormData({
-      ...formData,
-      images: newImages
-    });
-
-    const newPreviews = [...previewImages];
-    newPreviews.splice(index, 1);
-    setPreviewImages(newPreviews);
+    setImages(prev => prev.filter((_, i) => i !== index));
+    setPreviewImages(prev => prev.filter((_, i) => i !== index));
   };
 
-  const validateForm = () => {
+  const validateStep1 = () => {
     const newErrors = {};
 
-    if (!formData.propertyDocument) {
-      newErrors.propertyDocument = 'Property document is required';
+    if (!formData.title.trim()) {
+      newErrors.title = 'Title is required';
     }
 
-    if (formData.images.length === 0) {
-      newErrors.images = 'At least one image is required';
+    if (!formData.description.trim()) {
+      newErrors.description = 'Description is required';
     }
 
-    if (!formData.boundaryCoordinates.trim()) {
-      newErrors.boundaryCoordinates = 'Boundary coordinates are required';
-    } else {
-      try {
-        const parsedCoords = JSON.parse(formData.boundaryCoordinates);
-        if (!Array.isArray(parsedCoords)) {
-          newErrors.boundaryCoordinates = 'Coordinates must be in JSON array format';
-        } else if (parsedCoords.length < 3) {
-          newErrors.boundaryCoordinates = 'At least 3 coordinate pairs are required to form a polygon';
-        } else {
-          // Validate each coordinate pair
-          for (const coord of parsedCoords) {
-            if (!Array.isArray(coord) || coord.length !== 2 ||
-                typeof coord[0] !== 'number' || typeof coord[1] !== 'number') {
-              newErrors.boundaryCoordinates = 'Each coordinate must be in [longitude, latitude] format';
-              break;
-            }
-          }
-        }
-      } catch (e) {
-        newErrors.boundaryCoordinates = 'Invalid JSON format for coordinates';
-      }
+    if (!formData.address.trim()) {
+      newErrors.address = 'Address is required';
     }
 
-    if (!formData.areaInHectares || isNaN(formData.areaInHectares) || parseFloat(formData.areaInHectares) <= 0) {
-      newErrors.areaInHectares = 'Valid area in hectares is required';
+    if (!formData.areaInSqFt || isNaN(formData.areaInSqFt) || parseFloat(formData.areaInSqFt) <= 0) {
+      newErrors.areaInSqFt = 'Valid area in sq ft is required';
     }
 
     // Validate boundary coordinates - they are required for satellite verification
@@ -187,102 +113,101 @@ const PropertyVerificationPage = () => {
     return Object.keys(newErrors).length === 0;
   };
 
+  const validateStep2 = () => {
+    if (images.length === 0) {
+      setErrors({ images: 'At least one image is required' });
+      return false;
+    }
+    return true;
+  };
+
+  const handleNext = () => {
+    if (step === 1) {
+      if (validateStep1()) {
+        setStep(2);
+      }
+    } else if (step === 2) {
+      if (validateStep2()) {
+        setStep(3);
+      }
+    }
+  };
+
+  const handlePrevious = () => {
+    if (step > 1) {
+      setStep(step - 1);
+    }
+  };
+
   const handleSubmit = async () => {
-    if (!validateForm()) {
+    if (!validateStep1() || !validateStep2()) {
       return;
     }
 
     setIsLoading(true);
 
-    // Simulate verification process with 2-second delay
-    setTimeout(async () => {
-      try {
-        // Update carbon coins and property status in localStorage
-        localStorage.setItem('carbonCoins', '150'); // Sample number of credits
-        localStorage.setItem('propertyStatus', 'Verified'); // Set property status as verified
+    try {
+      // Prepare property data
+      const propertyData = {
+        ...formData,
+        areaInSqFt: parseFloat(formData.areaInSqFt),
+        boundaryCoordinates: formData.boundaryCoordinates // This would typically come from a map interface
+      };
 
-        // Redirect to dashboard
-        setIsVerified(true);
-        router.push('/dashboard');
-      } catch (error) {
-        console.error('Verification error:', error);
-        setErrors({ api: error.message || 'Verification failed. Please try again.' });
-        setIsLoading(false);
-      }
-    }, 2000);
+      // Call API to create property
+      const response = await apiClient.createProperty(propertyData, images);
+
+      // Show success message
+      alert(`Property created successfully! You earned ${response.data.coinsEarned} carbon coins!`);
+
+      // Redirect to dashboard
+      router.push('/dashboard');
+    } catch (error) {
+      console.error('Property creation error:', error);
+      setErrors({ api: error.message || 'Property creation failed. Please try again.' });
+      setIsLoading(false);
+    }
   };
 
   return (
     <div className="page-container">
-        <Navbar />
+      <Navbar />
 
-        <main className="main-content">
-            <div className="auth-container" style={{ minHeight: 'calc(100vh - 200px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '2rem 1rem' }}>
-                {profile && profile.verified && (
-                    <div className="info-message" style={{ maxWidth: '440px', width: '100%' }}>
-                        Your identity is already verified. Redirecting to
-                        dashboard...
-                    </div>
-                )}
-                {profile &&
-                !profile.verified &&
-                profile.sellerProfile.aadharUrl &&
-                profile.sellerProfile.selfieUrl ? (
-                    <div className="info-message" style={{ maxWidth: '440px', width: '100%' }}>
-                        Your documents are under review. Please wait for
-                        verification.
-                    </div>
-                ) : (
-                  <motion.div
-                  initial={{ opacity: 0, y: 12 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.35, ease: [0.22, 0.61, 0.36, 1] }}
-                  className="surface-elevated"
-                  style={{
-                    width: "100%",
-                    maxWidth: "460px",
-                    padding: "2.2rem",
-                    borderRadius: "1.25rem",
-                    background: "#ffffff",
-                    boxShadow: "0 20px 60px rgba(15, 23, 42, 0.08)",
-                  }}
-                >
-                  <h1
+      <main className="main-content">
+        <div className="container">
+          <div className="dashboard-container">
+            <div className="dashboard-header">
+              <h1 className="dashboard-title" style={{fontSize: "3rem"}}>Property Verification</h1>
+              <p className="dashboard-subtitle">Register and verify your green assets</p>
+            </div>
+
+            <div className="progress-indicator" style={{ textAlign: 'center', marginBottom: '2rem' }}>
+              <div style={{ display: 'flex', justifyContent: 'center', gap: '1rem' }}>
+                {[1, 2, 3].map((s) => (
+                  <div 
+                    key={s} 
                     style={{
-                      textAlign: "center",
-                      marginBottom: "0.5rem",
-                      color: "#0f172a",
-                      fontSize: "1.75rem",
-                      fontWeight: 700,
+                      padding: '0.5rem 1rem',
+                      borderRadius: '9999px',
+                      backgroundColor: step >= s ? '#4caf50' : '#e0e0e0',
+                      color: step >= s ? 'white' : '#757575',
+                      fontWeight: 'bold'
                     }}
                   >
-                    Identity Verification
-                  </h1>
-                
-                  <p
-                    style={{
-                      textAlign: "center",
-                      marginBottom: "1.8rem",
-                      fontSize: "0.95rem",
-                      color: "#475569",
-                    }}
-                  >
-                    Upload Aadhaar and a selfie to complete your verification
-                  </p>
-                
-                  {error && (
-                    <div
-                      style={{
-                        padding: "0.8rem 1rem",
-                        marginBottom: "1.2rem",
-                        borderRadius: "0.75rem",
-                        background: "rgba(239, 68, 68, 0.08)",
-                        border: "1px solid rgba(239, 68, 68, 0.25)",
-                        color: "#b91c1c",
-                        fontSize: "0.9rem",
-                      }}
-                    >
-                      {error}
+                    Step {s}
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="dashboard-content">
+              {step === 1 && (
+                <div className="step-content">
+                  <h2 style={{ textAlign: 'center', marginBottom: '2rem', color: '#2e7d32' }}>Asset Information</h2>
+                  
+                  {errors.api && (
+                    <div className="error-message" style={{ marginBottom: '1rem' }}>
+                      {errors.api}
                     </div>
                   )}
 
@@ -417,153 +342,119 @@ const PropertyVerificationPage = () => {
                       {errors.api}
                     </div>
                   )}
-                
-                  <div style={{ marginBottom: "1.6rem" }}>
-                    {/* Aadhaar Upload */}
-                    <div style={{ marginBottom: "1.5rem" }}>
-                      <label
-                        style={{
-                          display: "block",
-                          marginBottom: "0.4rem",
-                          fontWeight: 600,
-                          fontSize: "0.9rem",
-                          color: "#0f172a",
-                        }}
-                      >
-                        Aadhaar Image (jpg/png)
-                      </label>
-                
-                      <input
-                        type="file"
-                        accept=".jpg,.jpeg,.png"
-                        onChange={(e) =>
-                          handleImageChange(
-                            e,
-                            setAadhaarImage,
-                            setPreviewAadhaar,
-                            "Aadhaar"
-                          )
-                        }
-                        disabled={isLoading}
-                        style={{
-                          width: "100%",
-                          padding: "0.75rem",
-                          borderRadius: "0.9rem",
-                          border: "1px dashed rgba(15, 23, 42, 0.25)",
-                          background: "#f8fafc",
-                          color: "#0f172a",
-                          fontSize: "0.9rem",
-                          cursor: "pointer",
-                        }}
-                      />
-                
-                      {previewAadhaar && (
-                        <div style={{ marginTop: "0.9rem" }}>
-                          <img
-                            src={previewAadhaar}
-                            alt="Aadhaar Preview"
-                            style={{
-                              width: "100%",
-                              borderRadius: "0.9rem",
-                              border: "1px solid rgba(15, 23, 42, 0.1)",
-                            }}
+
+                  <div className="form-group">
+                    <label>Upload Supporting Images *</label>
+                    <input
+                      type="file"
+                      multiple
+                      accept=".jpg,.jpeg,.png"
+                      onChange={handleImageChange}
+                      className={errors.images ? 'error' : ''}
+                      disabled={isLoading}
+                    />
+                    {errors.images && <span className="error-message">{errors.images}</span>}
+                    
+                    <div style={{ marginTop: '1rem', display: 'flex', flexWrap: 'wrap', gap: '1rem' }}>
+                      {previewImages.map((preview, index) => (
+                        <div key={index} style={{ position: 'relative', width: '150px', height: '150px' }}>
+                          <img 
+                            src={preview} 
+                            alt={`Preview ${index}`} 
+                            className="preview-image" 
+                            style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '8px' }}
                           />
-                        </div>
-                      )}
-                    </div>
-                
-                    {/* Selfie Upload */}
-                    <div>
-                      <label
-                        style={{
-                          display: "block",
-                          marginBottom: "0.4rem",
-                          fontWeight: 600,
-                          fontSize: "0.9rem",
-                          color: "#0f172a",
-                        }}
-                      >
-                        Selfie Image (jpg/png)
-                      </label>
-                
-                      <input
-                        type="file"
-                        accept=".jpg,.jpeg,.png"
-                        onChange={(e) =>
-                          handleImageChange(
-                            e,
-                            setSelfieImage,
-                            setPreviewSelfie,
-                            "Selfie"
-                          )
-                        }
-                        disabled={isLoading}
-                        style={{
-                          width: "100%",
-                          padding: "0.75rem",
-                          borderRadius: "0.9rem",
-                          border: "1px dashed rgba(15, 23, 42, 0.25)",
-                          background: "#f8fafc",
-                          color: "#0f172a",
-                          fontSize: "0.9rem",
-                          cursor: "pointer",
-                        }}
-                      />
-                
-                      {previewSelfie && (
-                        <div style={{ marginTop: "0.9rem" }}>
-                          <img
-                            src={previewSelfie}
-                            alt="Selfie Preview"
+                          <button
+                            type="button"
+                            onClick={() => removeImage(index)}
                             style={{
-                              width: "100%",
-                              borderRadius: "0.9rem",
-                              border: "1px solid rgba(15, 23, 42, 0.1)",
+                              position: 'absolute',
+                              top: '-8px',
+                              right: '-8px',
+                              background: '#f44336',
+                              color: 'white',
+                              border: 'none',
+                              borderRadius: '50%',
+                              width: '24px',
+                              height: '24px',
+                              cursor: 'pointer'
                             }}
-                          />
+                          >
+                            ×
+                          </button>
                         </div>
-                      )}
+                      ))}
                     </div>
                   </div>
-                
-                  <button
-                    onClick={handleVerify}
-                    disabled={isLoading}
-                    style={{
-                      width: "100%",
-                      padding: "0.85rem 1.25rem",
-                      borderRadius: "0.9rem",
-                      fontWeight: 600,
-                      fontSize: "1rem",
-                      color: "#ffffff",
-                      background: "linear-gradient(90deg, #10B981, #16A34A)",
-                      border: "none",
-                      cursor: "pointer",
-                      transition: "all 0.2s ease",
-                      opacity: isLoading ? 0.7 : 1,
-                    }}
-                  >
-                    {isLoading ? "Processing…" : "Verify Now"}
-                  </button>
-                
-                  <p
-                    style={{
-                      marginTop: "1.2rem",
-                      fontSize: "0.75rem",
-                      color: "#64748b",
-                      textAlign: "center",
-                    }}
-                  >
-                    🔒 Enterprise-grade encryption · AI-powered document validation
-                  </p>
-                </motion.div>                
-                )}
-            </div>
-        </main>
+                </div>
+              )}
 
-        <Footer />
+              {step === 3 && (
+                <div className="step-content">
+                  <h2 style={{ textAlign: 'center', marginBottom: '2rem', color: '#2e7d32' }}>Review & Submit</h2>
+                  
+                  <div className="review-summary">
+                    <h3>Property Details:</h3>
+                    <p><strong>Title:</strong> {formData.title}</p>
+                    <p><strong>Description:</strong> {formData.description}</p>
+                    <p><strong>Address:</strong> {formData.address}</p>
+                    <p><strong>Area:</strong> {formData.areaInSqFt} sq ft</p>
+                    <p><strong>Images:</strong> {images.length} uploaded</p>
+                  </div>
+                  
+                  <div style={{ marginTop: '2rem', textAlign: 'center' }}>
+                    <p>By submitting, you agree that the information provided is accurate and that you have the right to register this property.</p>
+                  </div>
+                </div>
+              )}
+
+              <div className="step-navigation" style={{ display: 'flex', justifyContent: 'space-between', marginTop: '2rem' }}>
+                <button
+                  onClick={handlePrevious}
+                  className="action-button secondary"
+                  disabled={step === 1 || isLoading}
+                  style={{ minWidth: '120px' }}
+                >
+                  Previous
+                </button>
+
+                {step < 3 ? (
+                  <button
+                    onClick={handleNext}
+                    className="action-button primary"
+                    disabled={isLoading}
+                    style={{ minWidth: '120px' }}
+                  >
+                    Next
+                  </button>
+                ) : (
+                  <button
+                    onClick={handleSubmit}
+                    className="action-button primary"
+                    disabled={isLoading}
+                    style={{ minWidth: '120px' }}
+                  >
+                    {isLoading ? 'Submitting...' : 'Submit Property'}
+                  </button>
+                )}
+              </div>
+
+              <div className="dashboard-actions" style={{ fontSize: "1rem", marginTop: "2rem", display: "flex", gap: "1rem", flexWrap: "wrap" }}>
+                <Link href="/dashboard" className="action-button secondary">
+                  Back to Dashboard
+                </Link>
+                <Link href="/property-verification/enhanced" className="action-button primary">
+                  Enhanced Verification (with Map)
+                </Link>
+              </div>
+            </div>
+          </div>
+        </div>
+      </main>
+
+      <Footer />
     </div>
-);
+  );
 };
 
 export default PropertyVerificationPage;
