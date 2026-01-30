@@ -12,6 +12,20 @@ const propertyRoutes = require("./src/routes/property.routes");
 const carbonCoinRoutes = require("./src/routes/carbonCoin.routes");
 const companyRoutes = require("./src/routes/company.routes");
 
+const sellerVerificationQueue = require("./src/queues/sellerVerificationQueue");
+const { createBullBoard } = require("@bull-board/api");
+const { BullMQAdapter } = require("@bull-board/api/bullMQAdapter");
+const { ExpressAdapter } = require("@bull-board/express");
+
+const serverAdapter = new ExpressAdapter();
+serverAdapter.setBasePath('/admin/queues');
+
+const { addQueue, removeQueue, setQueues, replaceQueues } = createBullBoard({
+  queues: [new BullMQAdapter(sellerVerificationQueue.queue)],
+  serverAdapter: serverAdapter,
+});
+app.use('/admin/queues', serverAdapter.getRouter());
+
 connectDB();
 
 const PORT = process.env.PORT || 3000;
@@ -26,7 +40,6 @@ app.use("/api/sellers", sellerRoutes);
 app.use("/api/properties", propertyRoutes);
 app.use("/api/carboncoins", carbonCoinRoutes);
 app.use("/api/companies", companyRoutes);
-
 
 app.get("/", (req, res) => {
     res.json({

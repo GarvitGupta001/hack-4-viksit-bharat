@@ -3,9 +3,9 @@ const connectRedis = require("../../utils/redis");
 
 class SellerVerificationQueue {
     constructor() {
-        const connection = connectRedis();
+        const redisConnection = connectRedis();
         this.queue = new Queue("seller_verification_queue", {
-            connection,
+            connection: redisConnection,
             defaultJobOptions: {
                 attempts: 3,
                 backoff: { type: "exponential", delay: 1000 },

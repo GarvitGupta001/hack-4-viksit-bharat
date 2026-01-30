@@ -1,11 +1,11 @@
 'use client';
 
 import { useState } from 'react';
-import Navbar from '../../components/Navbar';
-import Footer from '../../components/Footer';
+import Navbar from '@/components/Navbar';
+import Footer from '@/components/Footer';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import apiClient from '../../services/api';
+import apiClient from '@/services/api';
 
 const SignupPage = () => {
   const [formData, setFormData] = useState({
