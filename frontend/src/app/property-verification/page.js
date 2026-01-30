@@ -90,6 +90,25 @@ const PropertyVerificationPage = () => {
       newErrors.areaInSqFt = 'Valid area in sq ft is required';
     }
 
+    // Validate boundary coordinates - they are required for satellite verification
+    if (!formData.boundaryCoordinates || !Array.isArray(formData.boundaryCoordinates) || formData.boundaryCoordinates.length === 0) {
+      newErrors.boundaryCoordinates = 'Boundary coordinates are required for satellite verification';
+    } else {
+      const isValid = formData.boundaryCoordinates.every(coord =>
+        typeof coord === 'object' &&
+        coord.lat !== undefined &&
+        coord.lng !== undefined &&
+        typeof coord.lat === 'number' &&
+        typeof coord.lng === 'number' &&
+        !isNaN(coord.lat) &&
+        !isNaN(coord.lng)
+      );
+
+      if (!isValid) {
+        newErrors.boundaryCoordinates = 'Each coordinate must have valid lat and lng numbers';
+      }
+    }
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -254,25 +273,62 @@ const PropertyVerificationPage = () => {
                   </div>
 
                   <div className="form-group">
-                    <label htmlFor="boundaryCoordinates">Boundary Coordinates (Optional)</label>
+                    <label htmlFor="boundaryCoordinates">Boundary Coordinates *</label>
                     <textarea
                       id="boundaryCoordinates"
                       name="boundaryCoordinates"
-                      value={JSON.stringify(formData.boundaryCoordinates)}
+                      value={formData.boundaryCoordinates && Array.isArray(formData.boundaryCoordinates) && formData.boundaryCoordinates.length > 0
+                        ? JSON.stringify(formData.boundaryCoordinates.map(coord => [coord.lng, coord.lat]), null, 2)
+                        : "[\n  [77.1950, 28.5050],\n  [77.1965, 28.5050],\n  [77.1965, 28.5065],\n  [77.1950, 28.5065],\n  [77.1950, 28.5050]\n]"
+                      }
                       onChange={(e) => {
                         try {
-                          const parsed = JSON.parse(e.target.value);
+                          const rawInput = e.target.value.trim();
+                          // Check if it's a valid array format
+                          let parsed;
+
+                          // Try to parse as-is first
+                          try {
+                            parsed = JSON.parse(rawInput);
+                          } catch {
+                            // If that fails, try wrapping in brackets if it looks like an array of arrays
+                            if (rawInput.startsWith('[') && rawInput.includes('[') && rawInput.endsWith(']')) {
+                              parsed = JSON.parse(`[${rawInput.replace(/^\[|\]$/g, '')}]`);
+                            } else {
+                              throw new Error('Invalid format');
+                            }
+                          }
+
                           if (Array.isArray(parsed)) {
-                            setFormData({...formData, boundaryCoordinates: parsed});
+                            // Convert [lng, lat] format to {lng, lat} format
+                            const convertedCoords = parsed.map(coordPair => {
+                              if (Array.isArray(coordPair) && coordPair.length === 2) {
+                                const [lng, lat] = coordPair;
+                                return { lng: Number(lng), lat: Number(lat) };
+                              } else {
+                                throw new Error('Each coordinate pair must be an array with 2 numbers [lng, lat]');
+                              }
+                            });
+
+                            setFormData(prev => ({...prev, boundaryCoordinates: convertedCoords}));
+                            // Clear any error for this field
+                            setErrors(prev => ({...prev, boundaryCoordinates: ''}));
+                          } else {
+                            setErrors(prev => ({...prev, boundaryCoordinates: 'Must be an array of coordinate pairs'}));
                           }
                         } catch (error) {
-                          // Ignore invalid JSON
+                          setErrors(prev => ({...prev, boundaryCoordinates: 'Invalid coordinate format. Use [[lng, lat], [lng, lat], ...] format'}));
                         }
                       }}
-                      placeholder='Enter coordinates in format: [{"lat": 22.5645, "lng": 72.9289}, {"lat": 22.5648, "lng": 72.9295}]'
-                      rows="4"
+                      placeholder='Enter coordinates in format: [[77.1950, 28.5050], [77.1965, 28.5050], ...]'
+                      rows="6"
                       disabled={isLoading}
+                      required
                     ></textarea>
+                    <small style={{ color: '#757575', marginTop: '0.5rem', display: 'block' }}>
+                      Enter coordinates in [longitude, latitude] format. Example: [[77.1950, 28.5050], [77.1965, 28.5050], ...]
+                    </small>
+                    {errors.boundaryCoordinates && <span className="error-message">{errors.boundaryCoordinates}</span>}
                   </div>
                 </div>
               )}
