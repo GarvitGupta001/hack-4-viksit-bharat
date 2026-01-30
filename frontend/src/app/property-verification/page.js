@@ -164,6 +164,25 @@ const PropertyVerificationPage = () => {
       newErrors.areaInHectares = 'Valid area in hectares is required';
     }
 
+    // Validate boundary coordinates - they are required for satellite verification
+    if (!formData.boundaryCoordinates || !Array.isArray(formData.boundaryCoordinates) || formData.boundaryCoordinates.length === 0) {
+      newErrors.boundaryCoordinates = 'Boundary coordinates are required for satellite verification';
+    } else {
+      const isValid = formData.boundaryCoordinates.every(coord =>
+        typeof coord === 'object' &&
+        coord.lat !== undefined &&
+        coord.lng !== undefined &&
+        typeof coord.lat === 'number' &&
+        typeof coord.lng === 'number' &&
+        !isNaN(coord.lat) &&
+        !isNaN(coord.lng)
+      );
+
+      if (!isValid) {
+        newErrors.boundaryCoordinates = 'Each coordinate must have valid lat and lng numbers';
+      }
+    }
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -266,20 +285,136 @@ const PropertyVerificationPage = () => {
                       {error}
                     </div>
                   )}
-                
-                  {verificationStatus && (
-                    <div
-                      style={{
-                        padding: "0.8rem 1rem",
-                        marginBottom: "1.2rem",
-                        borderRadius: "0.75rem",
-                        background: "rgba(16, 185, 129, 0.08)",
-                        border: "1px solid rgba(16, 185, 129, 0.25)",
-                        color: "#047857",
-                        fontSize: "0.9rem",
+
+                  <div className="form-group">
+                    <label htmlFor="title">Property Title *</label>
+                    <input
+                      type="text"
+                      id="title"
+                      name="title"
+                      value={formData.title}
+                      onChange={handleInputChange}
+                      className={errors.title ? 'error' : ''}
+                      placeholder="e.g., 500 Mango Trees Farm"
+                      disabled={isLoading}
+                    />
+                    {errors.title && <span className="error-message">{errors.title}</span>}
+                  </div>
+
+                  <div className="form-group">
+                    <label htmlFor="description">Description *</label>
+                    <textarea
+                      id="description"
+                      name="description"
+                      value={formData.description}
+                      onChange={handleInputChange}
+                      className={errors.description ? 'error' : ''}
+                      placeholder="Describe your green asset and its environmental benefits..."
+                      rows="4"
+                      disabled={isLoading}
+                    ></textarea>
+                    {errors.description && <span className="error-message">{errors.description}</span>}
+                  </div>
+
+                  <div className="form-group">
+                    <label htmlFor="address">Address *</label>
+                    <input
+                      type="text"
+                      id="address"
+                      name="address"
+                      value={formData.address}
+                      onChange={handleInputChange}
+                      className={errors.address ? 'error' : ''}
+                      placeholder="Full address of the property"
+                      disabled={isLoading}
+                    />
+                    {errors.address && <span className="error-message">{errors.address}</span>}
+                  </div>
+
+                  <div className="form-group">
+                    <label htmlFor="areaInSqFt">Area in Square Feet *</label>
+                    <input
+                      type="number"
+                      id="areaInSqFt"
+                      name="areaInSqFt"
+                      value={formData.areaInSqFt}
+                      onChange={handleInputChange}
+                      className={errors.areaInSqFt ? 'error' : ''}
+                      placeholder="Enter area in sq ft"
+                      min="1"
+                      disabled={isLoading}
+                    />
+                    {errors.areaInSqFt && <span className="error-message">{errors.areaInSqFt}</span>}
+                  </div>
+
+                  <div className="form-group">
+                    <label htmlFor="boundaryCoordinates">Boundary Coordinates *</label>
+                    <textarea
+                      id="boundaryCoordinates"
+                      name="boundaryCoordinates"
+                      value={formData.boundaryCoordinates && Array.isArray(formData.boundaryCoordinates) && formData.boundaryCoordinates.length > 0
+                        ? JSON.stringify(formData.boundaryCoordinates.map(coord => [coord.lng, coord.lat]), null, 2)
+                        : "[\n  [77.1950, 28.5050],\n  [77.1965, 28.5050],\n  [77.1965, 28.5065],\n  [77.1950, 28.5065],\n  [77.1950, 28.5050]\n]"
+                      }
+                      onChange={(e) => {
+                        try {
+                          const rawInput = e.target.value.trim();
+                          // Check if it's a valid array format
+                          let parsed;
+
+                          // Try to parse as-is first
+                          try {
+                            parsed = JSON.parse(rawInput);
+                          } catch {
+                            // If that fails, try wrapping in brackets if it looks like an array of arrays
+                            if (rawInput.startsWith('[') && rawInput.includes('[') && rawInput.endsWith(']')) {
+                              parsed = JSON.parse(`[${rawInput.replace(/^\[|\]$/g, '')}]`);
+                            } else {
+                              throw new Error('Invalid format');
+                            }
+                          }
+
+                          if (Array.isArray(parsed)) {
+                            // Convert [lng, lat] format to {lng, lat} format
+                            const convertedCoords = parsed.map(coordPair => {
+                              if (Array.isArray(coordPair) && coordPair.length === 2) {
+                                const [lng, lat] = coordPair;
+                                return { lng: Number(lng), lat: Number(lat) };
+                              } else {
+                                throw new Error('Each coordinate pair must be an array with 2 numbers [lng, lat]');
+                              }
+                            });
+
+                            setFormData(prev => ({...prev, boundaryCoordinates: convertedCoords}));
+                            // Clear any error for this field
+                            setErrors(prev => ({...prev, boundaryCoordinates: ''}));
+                          } else {
+                            setErrors(prev => ({...prev, boundaryCoordinates: 'Must be an array of coordinate pairs'}));
+                          }
+                        } catch (error) {
+                          setErrors(prev => ({...prev, boundaryCoordinates: 'Invalid coordinate format. Use [[lng, lat], [lng, lat], ...] format'}));
+                        }
                       }}
-                    >
-                      {verificationStatus}
+                      placeholder='Enter coordinates in format: [[77.1950, 28.5050], [77.1965, 28.5050], ...]'
+                      rows="6"
+                      disabled={isLoading}
+                      required
+                    ></textarea>
+                    <small style={{ color: '#757575', marginTop: '0.5rem', display: 'block' }}>
+                      Enter coordinates in [longitude, latitude] format. Example: [[77.1950, 28.5050], [77.1965, 28.5050], ...]
+                    </small>
+                    {errors.boundaryCoordinates && <span className="error-message">{errors.boundaryCoordinates}</span>}
+                  </div>
+                </div>
+              )}
+
+              {step === 2 && (
+                <div className="step-content">
+                  <h2 style={{ textAlign: 'center', marginBottom: '2rem', color: '#2e7d32' }}>Documentation</h2>
+                  
+                  {errors.api && (
+                    <div className="error-message" style={{ marginBottom: '1rem' }}>
+                      {errors.api}
                     </div>
                   )}
                 
