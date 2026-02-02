@@ -311,8 +311,8 @@ const MapVisualizationPage = () => {
                   return (
                     <div key={idx} style={{ marginBottom: '8px' }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', marginBottom: '2px' }}>
-                        <span>{item.type}</span>
-                        <strong>{item.percent}%</strong>
+                        <span style={{color:"darkgreen"}}>{item.type}</span>
+                        <strong style={{color:"darkgreen", fontWeight: "bold"}}>{item.percent}%</strong>
                       </div>
                       <div style={{ height: '6px', background: '#eee', borderRadius: '3px', overflow: 'hidden' }}>
                         <div style={{ width: `${item.percent}%`, background: color, height: '100%' }}></div>
@@ -332,7 +332,7 @@ const MapVisualizationPage = () => {
                     style={styles.thumbnail} 
                     alt="Satellite"
                   />
-                  <div style={{ fontSize: '10px', marginTop: '4px' }}>True Color</div>
+                  <div style={{ fontSize: '15px', marginTop: '4px', color: "darkblue"}}>True Color</div>
                 </div>
                 <div style={{ textAlign: 'center' }}>
                   <img 
@@ -341,11 +341,11 @@ const MapVisualizationPage = () => {
                     style={styles.thumbnail} 
                     alt="AI Mask"
                   />
-                  <div style={{ fontSize: '10px', marginTop: '4px' }}>AI Mask</div>
+                  <div style={{ fontSize: '15px', marginTop: '4px', color: "darkblue"}}>AI Mask</div>
                 </div>
               </div>
 
-              <div style={{ marginTop: '15px', fontSize: '11px', color: '#999', textAlign: 'center' }}>
+              <div style={{ marginTop: '15px', fontSize: '11px', color: 'black', textAlign: 'center' }}>
                 Imagery Date: {analysisResult.meta.image_date}
               </div>
 
@@ -427,8 +427,8 @@ const styles = {
     transition: 'background 0.2s'
   },
   secondaryButton: {
-    width: '100%', padding: '12px', marginTop: '20px', background: '#ecf0f1',
-    color: '#7f8c8d', border: 'none', borderRadius: '8px', fontWeight: '600',
+    width: '100%', padding: '12px', marginTop: '20px', background: 'darkgreen',
+    color: '#ffffff', border: 'none', borderRadius: '8px', fontWeight: '600',
     cursor: 'pointer'
   },
   loader: {
