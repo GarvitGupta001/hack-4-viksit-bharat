@@ -6,83 +6,7 @@ import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import Link from 'next/link';
 import apiClient from '@/services/api';
-
-// Simple map-like component since we don't have Leaflet installed
-const SimpleMap = ({ onCoordinateSelect, selectedCoordinates }) => {
-  const handleMapClick = (e) => {
-    // In a real implementation, this would get coordinates from the map
-    // For now, we'll simulate with random coordinates
-    const rect = e.currentTarget.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
-    
-    // Convert pixel coordinates to lat/lng (simulated)
-    const lat = 20 + (y / rect.height) * 10; // Range: 20-30
-    const lng = 70 + (x / rect.width) * 10;  // Range: 70-80
-    
-    onCoordinateSelect({ lat: parseFloat(lat.toFixed(6)), lng: parseFloat(lng.toFixed(6)) });
-  };
-
-  return (
-    <div 
-      style={{ 
-        width: '100%', 
-        height: '300px', 
-        border: '1px solid #ccc', 
-        borderRadius: '8px',
-        backgroundColor: '#e0f7fa',
-        position: 'relative',
-        cursor: 'crosshair',
-        overflow: 'hidden'
-      }}
-      onClick={handleMapClick}
-    >
-      <div style={{ position: 'absolute', top: '10px', left: '10px', zIndex: 1, color: '#006064', fontWeight: 'bold' }}>
-        Click on the map to add boundary points
-      </div>
-      
-      {/* Grid lines for visual reference */}
-      <div style={{ position: 'absolute', top: 0, left: '50%', width: '1px', height: '100%', backgroundColor: 'rgba(0,0,0,0.1)' }}></div>
-      <div style={{ position: 'absolute', top: '50%', left: 0, width: '100%', height: '1px', backgroundColor: 'rgba(0,0,0,0.1)' }}></div>
-      
-      {/* Draw selected coordinates */}
-      {selectedCoordinates.map((coord, index) => (
-        <div 
-          key={index}
-          style={{
-            position: 'absolute',
-            width: '12px',
-            height: '12px',
-            borderRadius: '50%',
-            backgroundColor: '#f44336',
-            border: '2px solid white',
-            boxShadow: '0 0 5px rgba(0,0,0,0.5)',
-            left: `${((coord.lng - 70) / 10) * 100}%`,
-            top: `${((coord.lat - 20) / 10) * 100}%`,
-            transform: 'translate(-50%, -50%)',
-            zIndex: 2
-          }}
-          title={`Point ${index + 1}: ${coord.lat}, ${coord.lng}`}
-        >
-          <div style={{
-            position: 'absolute',
-            top: '-20px',
-            left: '50%',
-            transform: 'translateX(-50%)',
-            fontSize: '10px',
-            backgroundColor: 'rgba(0,0,0,0.7)',
-            color: 'white',
-            padding: '1px 3px',
-            borderRadius: '3px',
-            whiteSpace: 'nowrap'
-          }}>
-            {index + 1}
-          </div>
-        </div>
-      ))}
-    </div>
-  );
-};
+import EnhancedMapComponent from '@/components/EnhancedMapComponent';
 
 const EnhancedPropertyVerificationPage = () => {
   const [step, setStep] = useState(1); // Track current step
@@ -91,7 +15,7 @@ const EnhancedPropertyVerificationPage = () => {
     description: '',
     address: '',
     areaInSqFt: '',
-    boundaryCoordinates: [] // Will be an array of {lat, lng} objects
+    boundaryCoordinates: [] // Will be an array of [lng, lat] arrays for satellite service
   });
   const [images, setImages] = useState([]);
   const [previewImages, setPreviewImages] = useState([]);
@@ -117,9 +41,9 @@ const EnhancedPropertyVerificationPage = () => {
 
   const handleImageChange = (e) => {
     const files = Array.from(e.target.files);
-    
+
     // Validate file types
-    const validFiles = files.filter(file => 
+    const validFiles = files.filter(file =>
       file.type.match('image/jpeg') || file.type.match('image/png')
     );
 
@@ -148,18 +72,20 @@ const EnhancedPropertyVerificationPage = () => {
     setPreviewImages(prev => prev.filter((_, i) => i !== index));
   };
 
-  const handleCoordinateSelect = (coordinate) => {
+  const handleCoordinatesChange = (coordinates) => {
+    // Update boundary coordinates with the new coordinates from the map
     setFormData(prev => ({
       ...prev,
-      boundaryCoordinates: [...prev.boundaryCoordinates, coordinate]
+      boundaryCoordinates: coordinates
     }));
-  };
 
-  const removeCoordinate = (index) => {
-    setFormData(prev => ({
-      ...prev,
-      boundaryCoordinates: prev.boundaryCoordinates.filter((_, i) => i !== index)
-    }));
+    // Clear any error for this field
+    if (errors.boundaryCoordinates) {
+      setErrors(prev => ({
+        ...prev,
+        boundaryCoordinates: ''
+      }));
+    }
   };
 
   const validateStep1 = () => {
@@ -186,15 +112,14 @@ const EnhancedPropertyVerificationPage = () => {
       newErrors.boundaryCoordinates = 'Boundary coordinates are required for satellite verification';
     } else {
       const isValid = formData.boundaryCoordinates.every(coord =>
-        typeof coord === 'object' &&
-        coord.lat !== undefined &&
-        coord.lng !== undefined &&
-        typeof coord.lat === 'number' &&
-        typeof coord.lng === 'number'
+        Array.isArray(coord) &&
+        coord.length === 2 &&
+        typeof coord[0] === 'number' && // longitude
+        typeof coord[1] === 'number'    // latitude
       );
 
       if (!isValid) {
-        newErrors.boundaryCoordinates = 'Each coordinate must have valid lat and lng numbers';
+        newErrors.boundaryCoordinates = 'Each coordinate must be an array with 2 numbers [longitude, latitude]';
       }
     }
 
@@ -272,8 +197,8 @@ const EnhancedPropertyVerificationPage = () => {
             <div className="progress-indicator" style={{ textAlign: 'center', marginBottom: '2rem' }}>
               <div style={{ display: 'flex', justifyContent: 'center', gap: '1rem' }}>
                 {[1, 2, 3].map((s) => (
-                  <div 
-                    key={s} 
+                  <div
+                    key={s}
                     style={{
                       padding: '0.5rem 1rem',
                       borderRadius: '9999px',
@@ -292,7 +217,7 @@ const EnhancedPropertyVerificationPage = () => {
               {step === 1 && (
                 <div className="step-content">
                   <h2 style={{ textAlign: 'center', marginBottom: '2rem', color: '#2e7d32' }}>Asset Information</h2>
-                  
+
                   {errors.api && (
                     <div className="error-message" style={{ marginBottom: '1rem' }}>
                       {errors.api}
@@ -363,43 +288,32 @@ const EnhancedPropertyVerificationPage = () => {
                   <div className="form-group">
                     <label>Boundary Coordinates *</label>
                     <p style={{ color: '#757575', fontSize: '0.9rem', marginBottom: '1rem' }}>
-                      Click on the map below to add boundary points for your property (required for satellite verification)
+                      Search for a landmark near your property, then draw the boundary on the map (required for satellite verification)
                     </p>
-                    <SimpleMap
-                      onCoordinateSelect={handleCoordinateSelect}
-                      selectedCoordinates={formData.boundaryCoordinates}
+
+                    <EnhancedMapComponent
+                      onCoordinatesChange={handleCoordinatesChange}
+                      initialCoordinates={formData.boundaryCoordinates}
                     />
 
                     {formData.boundaryCoordinates.length > 0 && (
                       <div style={{ marginTop: '1rem' }}>
                         <h4>Selected Coordinates:</h4>
-                        <ul style={{ listStyle: 'none', padding: 0 }}>
-                          {formData.boundaryCoordinates.map((coord, index) => (
-                            <li key={index} style={{
-                              display: 'flex',
-                              justifyContent: 'space-between',
-                              alignItems: 'center',
-                              padding: '0.5rem',
-                              borderBottom: '1px solid #eee'
-                            }}>
-                              <span>Point {index + 1}: {coord.lat}, {coord.lng}</span>
-                              <button
-                                type="button"
-                                onClick={() => removeCoordinate(index)}
-                                style={{
-                                  background: '#f44336',
-                                  color: 'white',
-                                  border: 'none',
-                                  borderRadius: '4px',
-                                  padding: '0.25rem 0.5rem',
-                                  cursor: 'pointer'
-                                }}
-                              >
-                                Remove
-                              </button>
-                            </li>
-                          ))}
-                        </ul>
+                        <div style={{
+                          maxHeight: '150px',
+                          overflowY: 'auto',
+                          padding: '0.5rem',
+                          border: '1px solid #ddd',
+                          borderRadius: '4px',
+                          backgroundColor: '#f9f9f9'
+                        }}>
+                          <pre style={{ margin: 0, fontSize: '0.8rem' }}>
+                            {JSON.stringify(formData.boundaryCoordinates, null, 2)}
+                          </pre>
+                        </div>
+                        <p style={{ marginTop: '0.5rem', fontSize: '0.8rem', color: '#666' }}>
+                          {formData.boundaryCoordinates.length} coordinate points selected
+                        </p>
                       </div>
                     )}
 
@@ -409,7 +323,7 @@ const EnhancedPropertyVerificationPage = () => {
                       <textarea
                         id="manual-boundary-coordinates"
                         value={formData.boundaryCoordinates && Array.isArray(formData.boundaryCoordinates) && formData.boundaryCoordinates.length > 0
-                          ? JSON.stringify(formData.boundaryCoordinates.map(coord => [coord.lng, coord.lat]), null, 2)
+                          ? JSON.stringify(formData.boundaryCoordinates, null, 2)
                           : "[\n  [77.1950, 28.5050],\n  [77.1965, 28.5050],\n  [77.1965, 28.5065],\n  [77.1950, 28.5065],\n  [77.1950, 28.5050]\n]"
                         }
                         onChange={(e) => {
@@ -430,19 +344,21 @@ const EnhancedPropertyVerificationPage = () => {
                             }
 
                             if (Array.isArray(parsed)) {
-                              // Convert [lng, lat] format to {lng, lat} format
-                              const convertedCoords = parsed.map(coordPair => {
-                                if (Array.isArray(coordPair) && coordPair.length === 2) {
-                                  const [lng, lat] = coordPair;
-                                  return { lng: Number(lng), lat: Number(lat) };
-                                } else {
-                                  throw new Error('Each coordinate pair must be an array with 2 numbers [lng, lat]');
-                                }
-                              });
+                              // Validate that each coordinate is an array with 2 numbers [lng, lat]
+                              const isValid = parsed.every(coordPair =>
+                                Array.isArray(coordPair) &&
+                                coordPair.length === 2 &&
+                                typeof coordPair[0] === 'number' &&
+                                typeof coordPair[1] === 'number'
+                              );
 
-                              setFormData(prev => ({...prev, boundaryCoordinates: convertedCoords}));
-                              // Clear any error for this field
-                              setErrors(prev => ({...prev, boundaryCoordinates: ''}));
+                              if (isValid) {
+                                setFormData(prev => ({...prev, boundaryCoordinates: parsed}));
+                                // Clear any error for this field
+                                setErrors(prev => ({...prev, boundaryCoordinates: ''}));
+                              } else {
+                                throw new Error('Each coordinate pair must be an array with 2 numbers [lng, lat]');
+                              }
                             } else {
                               setErrors(prev => ({...prev, boundaryCoordinates: 'Must be an array of coordinate pairs'}));
                             }
@@ -465,7 +381,7 @@ const EnhancedPropertyVerificationPage = () => {
               {step === 2 && (
                 <div className="step-content">
                   <h2 style={{ textAlign: 'center', marginBottom: '2rem', color: '#2e7d32' }}>Documentation</h2>
-                  
+
                   {errors.api && (
                     <div className="error-message" style={{ marginBottom: '1rem' }}>
                       {errors.api}
@@ -483,14 +399,14 @@ const EnhancedPropertyVerificationPage = () => {
                       disabled={isLoading}
                     />
                     {errors.images && <span className="error-message">{errors.images}</span>}
-                    
+
                     <div style={{ marginTop: '1rem', display: 'flex', flexWrap: 'wrap', gap: '1rem' }}>
                       {previewImages.map((preview, index) => (
                         <div key={index} style={{ position: 'relative', width: '150px', height: '150px' }}>
-                          <img 
-                            src={preview} 
-                            alt={`Preview ${index}`} 
-                            className="preview-image" 
+                          <img
+                            src={preview}
+                            alt={`Preview ${index}`}
+                            className="preview-image"
                             style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '8px' }}
                           />
                           <button
@@ -521,7 +437,7 @@ const EnhancedPropertyVerificationPage = () => {
               {step === 3 && (
                 <div className="step-content">
                   <h2 style={{ textAlign: 'center', marginBottom: '2rem', color: '#2e7d32' }}>Review & Submit</h2>
-                  
+
                   <div className="review-summary">
                     <h3>Property Details:</h3>
                     <p><strong>Title:</strong> {formData.title}</p>
@@ -531,7 +447,7 @@ const EnhancedPropertyVerificationPage = () => {
                     <p><strong>Boundary Points:</strong> {formData.boundaryCoordinates.length}</p>
                     <p><strong>Images:</strong> {images.length} uploaded</p>
                   </div>
-                  
+
                   <div style={{ marginTop: '2rem', textAlign: 'center' }}>
                     <p>By submitting, you agree that the information provided is accurate and that you have the right to register this property.</p>
                   </div>

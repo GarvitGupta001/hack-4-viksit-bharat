@@ -30,6 +30,20 @@ class PropertyService {
             parsedBoundaryCoordinates = [];
         }
 
+        // Convert from [lng, lat] format to {lat, lng} format to match the schema
+        const formattedBoundaryCoordinates = parsedBoundaryCoordinates.map(coord => {
+            if (Array.isArray(coord) && coord.length === 2) {
+                // Convert [lng, lat] to {lat, lng}
+                return { lng: coord[0], lat: coord[1] };
+            } else if (typeof coord === 'object' && coord !== null && 'lng' in coord && 'lat' in coord) {
+                // Already in {lat, lng} format
+                return { lng: coord.lng, lat: coord.lat };
+            } else {
+                // Invalid format, skip
+                return null;
+            }
+        }).filter(coord => coord !== null);
+
         // Create property
         const property = await Property.create({
             SellerId: sellerId,
@@ -37,7 +51,7 @@ class PropertyService {
             description,
             geotaggedImagesUrls,
             address,
-            boundaryCoordinates: parsedBoundaryCoordinates,
+            boundaryCoordinates: formattedBoundaryCoordinates,
             areaInSqFt,
         });
 
@@ -63,7 +77,17 @@ class PropertyService {
                 setImmediate(async () => {
                     try {
                         // Format coordinates correctly for satellite service [lng, lat] for Shapely Polygon
-                        const formattedCoordinates = property.boundaryCoordinates.map(coord => [coord.lng, coord.lat]);
+                        // The coordinates might be stored as [lng, lat] arrays or {lng, lat} objects
+                        const formattedCoordinates = property.boundaryCoordinates.map(coord => {
+                            // Check if coord is an array [lng, lat] or an object {lng, lat}
+                            if (Array.isArray(coord)) {
+                                // Already in [lng, lat] format
+                                return [coord[0], coord[1]];
+                            } else {
+                                // In {lng, lat} format
+                                return [coord.lng, coord.lat];
+                            }
+                        });
 
                         await satelliteService.analyzePropertyWithSatellite(
                             property._id,
@@ -160,6 +184,25 @@ class PropertyService {
         const property = await Property.findOne({ _id: propertyId, SellerId: sellerId });
         if (!property) {
             throw new Error("Property not found or you don't have permission to update it");
+        }
+
+        // Check if boundaryCoordinates are being updated and convert format if needed
+        if (updateData.boundaryCoordinates) {
+            // Convert from [lng, lat] format to {lat, lng} format to match the schema
+            const formattedBoundaryCoordinates = updateData.boundaryCoordinates.map(coord => {
+                if (Array.isArray(coord) && coord.length === 2) {
+                    // Convert [lng, lat] to {lat, lng}
+                    return { lng: coord[0], lat: coord[1] };
+                } else if (typeof coord === 'object' && coord !== null && 'lng' in coord && 'lat' in coord) {
+                    // Already in {lat, lng} format
+                    return { lng: coord.lng, lat: coord.lat };
+                } else {
+                    // Invalid format, skip
+                    return null;
+                }
+            }).filter(coord => coord !== null);
+
+            updateData.boundaryCoordinates = formattedBoundaryCoordinates;
         }
 
         Object.assign(property, updateData);

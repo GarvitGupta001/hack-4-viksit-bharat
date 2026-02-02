@@ -274,6 +274,9 @@ const PropertyVerificationPage = () => {
 
                   <div className="form-group">
                     <label htmlFor="boundaryCoordinates">Boundary Coordinates *</label>
+                    <p style={{ color: '#757575', fontSize: '0.9rem', marginBottom: '1rem' }}>
+                      Enter coordinates manually or <Link href="/property-verification/enhanced" className="action-button secondary" style={{ display: 'inline-block', marginLeft: '0.5rem', padding: '0.25rem 0.5rem', fontSize: '0.8rem' }}>use enhanced map interface</Link>
+                    </p>
                     <textarea
                       id="boundaryCoordinates"
                       name="boundaryCoordinates"
