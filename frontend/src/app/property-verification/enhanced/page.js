@@ -181,6 +181,23 @@ const EnhancedPropertyVerificationPage = () => {
       newErrors.areaInSqFt = 'Valid area in sq ft is required';
     }
 
+    // Validate boundary coordinates - they are required for satellite verification
+    if (!formData.boundaryCoordinates || !Array.isArray(formData.boundaryCoordinates) || formData.boundaryCoordinates.length === 0) {
+      newErrors.boundaryCoordinates = 'Boundary coordinates are required for satellite verification';
+    } else {
+      const isValid = formData.boundaryCoordinates.every(coord =>
+        typeof coord === 'object' &&
+        coord.lat !== undefined &&
+        coord.lng !== undefined &&
+        typeof coord.lat === 'number' &&
+        typeof coord.lng === 'number'
+      );
+
+      if (!isValid) {
+        newErrors.boundaryCoordinates = 'Each coordinate must have valid lat and lng numbers';
+      }
+    }
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -344,23 +361,23 @@ const EnhancedPropertyVerificationPage = () => {
                   </div>
 
                   <div className="form-group">
-                    <label>Boundary Coordinates (Optional)</label>
+                    <label>Boundary Coordinates *</label>
                     <p style={{ color: '#757575', fontSize: '0.9rem', marginBottom: '1rem' }}>
-                      Click on the map below to add boundary points for your property
+                      Click on the map below to add boundary points for your property (required for satellite verification)
                     </p>
-                    <SimpleMap 
+                    <SimpleMap
                       onCoordinateSelect={handleCoordinateSelect}
                       selectedCoordinates={formData.boundaryCoordinates}
                     />
-                    
+
                     {formData.boundaryCoordinates.length > 0 && (
                       <div style={{ marginTop: '1rem' }}>
                         <h4>Selected Coordinates:</h4>
                         <ul style={{ listStyle: 'none', padding: 0 }}>
                           {formData.boundaryCoordinates.map((coord, index) => (
-                            <li key={index} style={{ 
-                              display: 'flex', 
-                              justifyContent: 'space-between', 
+                            <li key={index} style={{
+                              display: 'flex',
+                              justifyContent: 'space-between',
                               alignItems: 'center',
                               padding: '0.5rem',
                               borderBottom: '1px solid #eee'
@@ -385,6 +402,62 @@ const EnhancedPropertyVerificationPage = () => {
                         </ul>
                       </div>
                     )}
+
+                    {/* Text area for manual coordinate entry */}
+                    <div style={{ marginTop: '1rem' }}>
+                      <label htmlFor="manual-boundary-coordinates">Or enter coordinates manually:</label>
+                      <textarea
+                        id="manual-boundary-coordinates"
+                        value={formData.boundaryCoordinates && Array.isArray(formData.boundaryCoordinates) && formData.boundaryCoordinates.length > 0
+                          ? JSON.stringify(formData.boundaryCoordinates.map(coord => [coord.lng, coord.lat]), null, 2)
+                          : "[\n  [77.1950, 28.5050],\n  [77.1965, 28.5050],\n  [77.1965, 28.5065],\n  [77.1950, 28.5065],\n  [77.1950, 28.5050]\n]"
+                        }
+                        onChange={(e) => {
+                          try {
+                            const rawInput = e.target.value.trim();
+                            let parsed;
+
+                            // Try to parse as-is first
+                            try {
+                              parsed = JSON.parse(rawInput);
+                            } catch {
+                              // If that fails, try wrapping in brackets if it looks like an array of arrays
+                              if (rawInput.startsWith('[') && rawInput.includes('[') && rawInput.endsWith(']')) {
+                                parsed = JSON.parse(`[${rawInput.replace(/^\[|\]$/g, '')}]`);
+                              } else {
+                                throw new Error('Invalid format');
+                              }
+                            }
+
+                            if (Array.isArray(parsed)) {
+                              // Convert [lng, lat] format to {lng, lat} format
+                              const convertedCoords = parsed.map(coordPair => {
+                                if (Array.isArray(coordPair) && coordPair.length === 2) {
+                                  const [lng, lat] = coordPair;
+                                  return { lng: Number(lng), lat: Number(lat) };
+                                } else {
+                                  throw new Error('Each coordinate pair must be an array with 2 numbers [lng, lat]');
+                                }
+                              });
+
+                              setFormData(prev => ({...prev, boundaryCoordinates: convertedCoords}));
+                              // Clear any error for this field
+                              setErrors(prev => ({...prev, boundaryCoordinates: ''}));
+                            } else {
+                              setErrors(prev => ({...prev, boundaryCoordinates: 'Must be an array of coordinate pairs'}));
+                            }
+                          } catch (error) {
+                            setErrors(prev => ({...prev, boundaryCoordinates: 'Invalid coordinate format. Use [[lng, lat], [lng, lat], ...] format'}));
+                          }
+                        }}
+                        placeholder='Enter coordinates in format: [[77.1950, 28.5050], [77.1965, 28.5050], ...]'
+                        rows="4"
+                        style={{ width: '100%', marginTop: '0.5rem' }}
+                      ></textarea>
+                      <small style={{ color: '#757575', marginTop: '0.5rem', display: 'block' }}>
+                        Enter coordinates in [longitude, latitude] format. Example: [[77.1950, 28.5050], [77.1965, 28.5050], ...]
+                      </small>
+                    </div>
                   </div>
                 </div>
               )}

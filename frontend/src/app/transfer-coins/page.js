@@ -1,5 +1,6 @@
 'use client';
 
+import { motion } from 'framer-motion';
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Navbar from '@/components/Navbar';
@@ -116,28 +117,145 @@ const CarbonCoinTransferPage = () => {
   }
 
   return (
-    <div className="page-container">
+    <div className="page-container" style={{ background: '#f8fafc' }}>
       <Navbar />
       <main className="main-content">
-        <div className="container">
-          <div className="dashboard-container">
-            <div className="dashboard-header">
-              <h1 className="dashboard-title">Transfer Carbon Coins</h1>
-              <p className="dashboard-subtitle">Send carbon coins to other verified users</p>
-            </div>
-
+        <div className="container" style={{ paddingTop: '2rem', paddingBottom: '3rem' }}>
+          <div className="dashboard-container" style={{ maxWidth: '920px' }}>
+            {/* Header */}
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4, ease: [0.22, 0.61, 0.36, 1] }}
+              className="dashboard-header"
+              style={{ textAlign: 'left', marginBottom: '2rem' }}
+            >
+              <h1
+                className="dashboard-title"
+                style={{
+                  fontSize: 'clamp(2.2rem, 4vw, 2.8rem)',
+                  fontWeight: 700,
+                  letterSpacing: '-0.02em',
+                  color: '#0f172a',
+                  marginBottom: '0.5rem',
+                }}
+              >
+                Transfer Carbon Coins
+              </h1>
+              <p className="dashboard-subtitle" style={{ color: '#64748b', marginBottom: '1.25rem' }}>
+                Securely transfer your carbon credits to another verified account.
+              </p>
+              <div style={{ borderBottom: '1px solid #e2e8f0' }} />
+            </motion.div>
+  
             <div className="dashboard-content">
-              <div className="dashboard-card" style={{ marginBottom: '2rem', textAlign: 'center' }}>
-                <h3>Current Balance</h3>
-                <p className="card-value">{balance} coins</p>
-              </div>
-
-              <form onSubmit={handleSubmit} className="auth-form">
-                {error && <div className="error-message">{error}</div>}
-                {success && <div className="success-message">{success}</div>}
-
-                <div className="form-group">
-                  <label htmlFor="toUserId">Recipient User ID</label>
+              {/* Balance card */}
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.35, delay: 0.1, ease: [0.22, 0.61, 0.36, 1] }}
+                whileHover={{ y: -4 }}
+                className="dashboard-card"
+                style={{
+                  marginBottom: '2.5rem',
+                  textAlign: 'left',
+                  background: '#ffffff',
+                  border: '1px solid #e2e8f0',
+                  borderRadius: '24px',
+                  boxShadow: '0 25px 60px rgba(15, 23, 42, 0.06)',
+                  padding: '2rem',
+                }}
+              >
+                <div
+                  style={{
+                    fontSize: '0.75rem',
+                    letterSpacing: '0.08em',
+                    color: '#64748b',
+                    textTransform: 'uppercase',
+                    fontWeight: 700,
+                    marginBottom: '0.75rem',
+                  }}
+                >
+                  Current Balance
+                </div>
+                <div
+                  className="card-value"
+                  style={{
+                    fontSize: 'clamp(2.4rem, 5vw, 3.2rem)',
+                    fontWeight: 700,
+                    letterSpacing: '-0.02em',
+                    color: '#0f172a',
+                    lineHeight: 1.05,
+                  }}
+                >
+                  {balance}
+                </div>
+                <div style={{ marginTop: '0.35rem', color: '#64748b', fontWeight: 600 }}>
+                  coins available
+                </div>
+              </motion.div>
+  
+              {/* Form card */}
+              <motion.form
+                onSubmit={handleSubmit}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.35, delay: 0.18, ease: [0.22, 0.61, 0.36, 1] }}
+                className="auth-form"
+                style={{
+                  width: '100%',
+                  maxWidth: '100%',
+                  background: '#ffffff',
+                  border: '1px solid #e2e8f0',
+                  borderRadius: '24px',
+                  boxShadow: '0 25px 60px rgba(15, 23, 42, 0.06)',
+                  padding: '2.5rem',
+                }}
+              >
+                {error && (
+                  <div
+                    className="error-message"
+                    style={{
+                      background: '#fef2f2',
+                      border: '1px solid #fecaca',
+                      color: '#b91c1c',
+                      borderRadius: '14px',
+                      padding: '0.85rem',
+                      marginBottom: '1.25rem',
+                    }}
+                  >
+                    {error}
+                  </div>
+                )}
+  
+                {success && (
+                  <div
+                    className="success-message"
+                    style={{
+                      background: '#f0fdf4',
+                      border: '1px solid #bbf7d0',
+                      color: '#166534',
+                      borderRadius: '14px',
+                      padding: '0.85rem',
+                      marginBottom: '1.25rem',
+                    }}
+                  >
+                    {success}
+                  </div>
+                )}
+  
+                <div className="form-group" style={{ marginBottom: '1.5rem' }}>
+                  <label
+                    htmlFor="toUserId"
+                    style={{
+                      fontSize: '0.85rem',
+                      fontWeight: 500,
+                      color: '#334155',
+                      marginBottom: 6,
+                    }}
+                  >
+                    Recipient User ID
+                  </label>
                   <input
                     type="text"
                     id="toUserId"
@@ -147,38 +265,174 @@ const CarbonCoinTransferPage = () => {
                     className="upload-input"
                     placeholder="Enter recipient's user ID"
                     required
+                    style={{
+                      height: 52,
+                      width: '100%',
+                      padding: '0 16px',
+                      borderRadius: 14,
+                      border: '1px solid #e2e8f0',
+                      background: '#ffffff',
+                      fontSize: '0.95rem',
+                      color: '#0f172a',
+                      outline: 'none',
+                    }}
+                    onFocus={(e) => {
+                      e.currentTarget.style.borderColor = '#0f766e';
+                      e.currentTarget.style.boxShadow = '0 0 0 3px rgba(15, 118, 110, 0.12)';
+                    }}
+                    onBlur={(e) => {
+                      e.currentTarget.style.borderColor = '#e2e8f0';
+                      e.currentTarget.style.boxShadow = 'none';
+                    }}
                   />
                 </div>
-
-                <div className="form-group">
-                  <label htmlFor="amount">Amount to Transfer</label>
-                  <input
-                    type="number"
-                    id="amount"
-                    name="amount"
-                    value={formData.amount}
-                    onChange={handleInputChange}
-                    className="upload-input"
-                    placeholder="Enter amount to transfer"
-                    min="1"
-                    max={balance}
-                    step="0.01"
-                    required
-                  />
-                  <small style={{ color: '#757575', marginTop: '0.5rem', display: 'block' }}>
-                    Available: {balance} coins
+  
+                <div className="form-group" style={{ marginBottom: '1.75rem' }}>
+                  <label
+                    htmlFor="amount"
+                    style={{
+                      fontSize: '0.85rem',
+                      fontWeight: 500,
+                      color: '#334155',
+                      marginBottom: 6,
+                    }}
+                  >
+                    Amount to Transfer
+                  </label>
+  
+                  {/* Amount input with visual currency indicator (no logic change) */}
+                  <div style={{ position: 'relative' }}>
+                    <div
+                      aria-hidden
+                      style={{
+                        position: 'absolute',
+                        left: 14,
+                        top: '50%',
+                        transform: 'translateY(-50%)',
+                        color: '#64748b',
+                        fontWeight: 700,
+                        fontSize: '0.95rem',
+                        pointerEvents: 'none',
+                      }}
+                    >
+                      CC
+                    </div>
+  
+                    <input
+                      type="number"
+                      id="amount"
+                      name="amount"
+                      value={formData.amount}
+                      onChange={handleInputChange}
+                      className="upload-input"
+                      placeholder="Enter amount to transfer"
+                      min="1"
+                      max={balance}
+                      step="0.01"
+                      required
+                      style={{
+                        height: 52,
+                        width: '100%',
+                        padding: '0 16px 0 44px',
+                        borderRadius: 14,
+                        border: '1px solid #e2e8f0',
+                        background: '#ffffff',
+                        fontSize: '1.1rem',
+                        color: '#0f172a',
+                        outline: 'none',
+                      }}
+                      onFocus={(e) => {
+                        e.currentTarget.style.borderColor = '#0f766e';
+                        e.currentTarget.style.boxShadow = '0 0 0 3px rgba(15, 118, 110, 0.12)';
+                        e.currentTarget.style.background = '#f8fafc';
+                      }}
+                      onBlur={(e) => {
+                        e.currentTarget.style.borderColor = '#e2e8f0';
+                        e.currentTarget.style.boxShadow = 'none';
+                        e.currentTarget.style.background = '#ffffff';
+                      }}
+                    />
+                  </div>
+  
+                  <small style={{ color: '#64748b', marginTop: '0.6rem', display: 'block' }}>
+                    Available: <strong style={{ color: '#0f172a' }}>{balance}</strong> coins
                   </small>
                 </div>
-
-                <div className="dashboard-actions">
-                  <button type="submit" className="action-button primary" disabled={transferring}>
+  
+                <div
+                  className="dashboard-actions"
+                  style={{
+                    display: 'flex',
+                    gap: '1rem',
+                    flexWrap: 'wrap',
+                    alignItems: 'center',
+                    marginTop: '0.5rem',
+                  }}
+                >
+                  <motion.button
+                    type="submit"
+                    className="action-button primary"
+                    disabled={transferring}
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    style={{
+                      height: 54,
+                      padding: '0 28px',
+                      borderRadius: 16,
+                      background: '#0f766e',
+                      border: '1px solid rgba(15, 23, 42, 0.06)',
+                      color: '#ffffff',
+                      fontWeight: 600,
+                      transition: '200ms ease',
+                      boxShadow: '0 10px 30px rgba(15,23,42,0.08)',
+                      opacity: transferring ? 0.6 : 1,
+                      cursor: transferring ? 'not-allowed' : 'pointer',
+                    }}
+                    onMouseEnter={(e) => {
+                      if (!e.currentTarget.disabled) {
+                        e.currentTarget.style.background = '#0d9488';
+                        e.currentTarget.style.transform = 'translateY(-1px)';
+                      }
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.background = '#0f766e';
+                      e.currentTarget.style.transform = 'translateY(0)';
+                    }}
+                  >
                     {transferring ? 'Processing Transfer...' : 'Transfer Coins'}
-                  </button>
-                  <Link href="/dashboard" className="action-button secondary">
-                    Back to Dashboard
-                  </Link>
+                  </motion.button>
+  
+                  <motion.div whileHover={{ y: -2 }} transition={{ duration: 0.22 }}>
+                    <Link
+                      href="/dashboard"
+                      className="action-button secondary"
+                      style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        height: 54,
+                        padding: '0 22px',
+                        borderRadius: 16,
+                        background: '#ffffff',
+                        border: '1px solid #e2e8f0',
+                        color: '#0f172a',
+                        fontWeight: 600,
+                        boxShadow: '0 10px 30px rgba(15,23,42,0.05)',
+                        textDecoration: 'none',
+                        transition: '200ms ease',
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.background = '#f1f5f9';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.background = '#ffffff';
+                      }}
+                    >
+                      Back to Dashboard
+                    </Link>
+                  </motion.div>
                 </div>
-              </form>
+              </motion.form>
             </div>
           </div>
         </div>
