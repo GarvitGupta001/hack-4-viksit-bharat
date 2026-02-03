@@ -1,3 +1,10 @@
+import os
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
+os.environ['TF_ENABLE_ONEDNN_OPTS'] = '0'
+os.environ['OPENBLAS_NUM_THREADS'] = '1'
+os.environ['MKL_NUM_THREADS'] = '1'
+os.environ['OMP_NUM_THREADS'] = '1'
+
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 from pymongo import MongoClient
@@ -5,8 +12,11 @@ from bson.objectid import ObjectId
 from deepface import DeepFace
 import requests
 import tempfile
-import os
 from dotenv import load_dotenv
+import logging
+
+# Suppress TensorFlow warnings
+logging.getLogger('tensorflow').setLevel(logging.ERROR)
 
 # Load environment variables
 load_dotenv()
@@ -32,23 +42,26 @@ MODEL_NAME = "ArcFace"
 DETECTOR = "retinaface"
 DISTANCE_METRIC = "cosine"
 
+# Pre-load models to avoid timeout on first request
+print("Pre-loading DeepFace models...")
+try:
+    DeepFace.build_model(MODEL_NAME)
+    print(f"Model {MODEL_NAME} loaded successfully")
+except Exception as e:
+    print(f"Warning: Could not pre-load model: {e}")
 
 def download_image(url, filename):
     """Download image from URL to temporary file"""
     try:
         response = requests.get(url, timeout=10)
         response.raise_for_status()
-        
-        # Create temp file with proper extension
-        ext = url.split('.')[-1].split('?')[0]  # Handle Cloudinary URLs with params
+        ext = url.split('.')[-1].split('?')[0]
         temp_file = tempfile.NamedTemporaryFile(delete=False, suffix=f'.{ext}')
         temp_file.write(response.content)
         temp_file.close()
-        
         return temp_file.name
     except Exception as e:
         raise Exception(f"Failed to download {filename}: {str(e)}")
-
 
 def verify_faces(aadhar_url, selfie_url):
     """Download images and perform face verification"""
@@ -56,9 +69,11 @@ def verify_faces(aadhar_url, selfie_url):
     selfie_path = None
     
     try:
+        print(f"Downloading images...")
         aadhar_path = download_image(aadhar_url, "Aadhar")
         selfie_path = download_image(selfie_url, "Selfie")
         
+        print(f"Starting face verification...")
         result = DeepFace.verify(
             img1_path=aadhar_path,
             img2_path=selfie_path,
@@ -68,6 +83,8 @@ def verify_faces(aadhar_url, selfie_url):
             enforce_detection=True
         )
         
+        print(f"Verification complete: {result['verified']}")
+        
         return {
             'verified': result['verified'],
             'distance': round(result['distance'], 4),
@@ -75,7 +92,9 @@ def verify_faces(aadhar_url, selfie_url):
             'model': MODEL_NAME,
             'confidence': round((1 - result['distance']) * 100, 2) if result['distance'] < 1 else 0
         }
-        
+    except Exception as e:
+        print(f"Verification error: {str(e)}")
+        raise
     finally:
         # Cleanup temporary files
         if aadhar_path and os.path.exists(aadhar_path):
@@ -83,22 +102,19 @@ def verify_faces(aadhar_url, selfie_url):
         if selfie_path and os.path.exists(selfie_path):
             os.remove(selfie_path)
 
-
 @app.route('/api/verify-face', methods=['POST'])
 def verify_face():
     """
     API endpoint to verify face matching between Aadhar and selfie
-    
     Request Body:
     {
         "userId": "string (MongoDB ObjectId)"
     }
-    
     Response:
     {
         "success": boolean,
         "verified": boolean,
-        "distance": float,
+        "distance": float,``
         "threshold": float,
         "confidence": float,
         "message": string
@@ -163,8 +179,7 @@ def verify_face():
             'threshold': verification_result['threshold'],
             'confidence': verification_result['confidence'],
             'model': verification_result['model'],
-            'message': 'Face verified - Same person' if verification_result['verified'] 
-                      else 'Face verification failed - Different person'
+            'message': 'Face verified - Same person' if verification_result['verified'] else 'Face verification failed - Different person'
         }
         
         return jsonify(response_data), 200
@@ -176,7 +191,6 @@ def verify_face():
             'error': str(e)
         }), 500
 
-
 @app.route('/api/health', methods=['GET'])
 def health_check():
     """Health check endpoint"""
@@ -185,7 +199,6 @@ def health_check():
         'database': 'connected' if db is not None else 'disconnected',
         'model': MODEL_NAME
     }), 200
-
 
 @app.route('/', methods=['GET'])
 def home():
@@ -207,14 +220,11 @@ def home():
         }
     }), 200
 
-
 if __name__ == '__main__':
     port = int(os.getenv('PORT', 5000))
     debug = os.getenv('DEBUG', 'True').lower() == 'true'
-
     print(f"Running on http://localhost:{port}")
     print(f"Debug mode: {debug}")
     print(f"Database: {DB_NAME}")
     print(f"Model: {MODEL_NAME}")
-    
     app.run(host='0.0.0.0', port=port, debug=debug)
