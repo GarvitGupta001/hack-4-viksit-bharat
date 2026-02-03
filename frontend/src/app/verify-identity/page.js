@@ -141,8 +141,8 @@ const VerifyIdentityPage = () => {
                     profile.sellerProfile.aadharUrl &&
                     profile.sellerProfile.selfieUrl ? (
                         <div className="info-message">
-                            Your documents are under review. Please wait for
-                            verification.
+                            <p style={{ fontSize: "1.2rem", color: "black"}}>Your documents are under review. Please wait for
+                            verification.</p>
                         </div>
                     ) : (
                         <div className="auth-form">
