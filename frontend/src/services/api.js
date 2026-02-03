@@ -1,7 +1,7 @@
 "use client";
 // API service for CarbonCoin marketplace
 const API_BASE_URL =
-    process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3000/api";
+    process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8080/api";
 
 // Create a base API client with common headers
 const apiClient = {
@@ -121,10 +121,15 @@ const apiClient = {
     async createProperty(propertyData, images) {
         const formData = new FormData();
 
+        console.log('Property data being sent:', propertyData); // Debug log
+
         // Add property data fields
         Object.keys(propertyData).forEach((key) => {
             if (key === "boundaryCoordinates") {
-                formData.append(key, JSON.stringify(propertyData[key]));
+                console.log('Boundary coordinates being sent:', propertyData[key]); // Debug log
+                const coordsString = JSON.stringify(propertyData[key]);
+                console.log('Boundary coordinates JSON string:', coordsString); // Debug log
+                formData.append(key, coordsString);
             } else {
                 formData.append(key, propertyData[key]);
             }
@@ -136,6 +141,8 @@ const apiClient = {
                 formData.append("images", images[i]);
             }
         }
+
+        console.log('FormData entries:', Array.from(formData.entries())); // Debug log
 
         return this.request("/properties/", {
             method: "POST",
@@ -169,6 +176,10 @@ const apiClient = {
     },
 
     async updateProperty(id, propertyData) {
+        console.log('Property data being updated:', propertyData); // Debug log
+        if (propertyData.boundaryCoordinates) {
+            console.log('Boundary coordinates being updated:', propertyData.boundaryCoordinates); // Debug log
+        }
         return this.request(`/properties/${id}`, {
             method: "PUT",
             body: JSON.stringify(propertyData),
