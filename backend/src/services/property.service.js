@@ -2,6 +2,7 @@ const Property = require("../models/property.model");
 const CarbonCoin = require("../models/carbonCoin.model");
 const { uploadToCloudinary } = require("../../utils/cloudinary");
 const satelliteService = require("./satellite.service");
+const { checkPropertyOverlap } = require("../../utils/propertyOverlap");
 
 class PropertyService {
     async createProperty(sellerId, propertyData, images) {
@@ -43,6 +44,15 @@ class PropertyService {
                 return null;
             }
         }).filter(coord => coord !== null);
+
+        // Check for property overlap before creating
+        if (formattedBoundaryCoordinates.length > 0) {
+            const overlapResult = await checkPropertyOverlap(formattedBoundaryCoordinates, null, Property, 0.10);
+
+            if (overlapResult.hasConflict) {
+                throw new Error(`Property overlaps with existing property "${overlapResult.conflictingProperty.title}" at ${overlapResult.conflictingProperty.address} beyond the allowed 10% threshold.`);
+            }
+        }
 
         // Create property
         const property = await Property.create({
@@ -201,6 +211,15 @@ class PropertyService {
                     return null;
                 }
             }).filter(coord => coord !== null);
+
+            // Check for property overlap before updating
+            if (formattedBoundaryCoordinates.length > 0) {
+                const overlapResult = await checkPropertyOverlap(formattedBoundaryCoordinates, propertyId, Property, 0.10);
+
+                if (overlapResult.hasConflict) {
+                    throw new Error(`Updated property overlaps with existing property "${overlapResult.conflictingProperty.title}" at ${overlapResult.conflictingProperty.address} beyond the allowed 10% threshold.`);
+                }
+            }
 
             updateData.boundaryCoordinates = formattedBoundaryCoordinates;
         }

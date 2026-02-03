@@ -66,7 +66,13 @@ const PropertyEditPage = () => {
       alert('Property updated successfully!');
       router.push('/dashboard');
     } catch (err) {
-      setError(err.message || 'Failed to update property');
+      // Check if it's a property overlap error
+      if (err.message.includes('Updated property overlaps with existing property')) {
+        alert(`Property Overlap Detected!\n\n${err.message}\n\nPlease adjust your property boundaries or contact support if you believe this is an error.`);
+        setError('Property overlap detected. Please adjust your boundaries.');
+      } else {
+        setError(err.message || 'Failed to update property');
+      }
       setSaving(false);
     }
   };

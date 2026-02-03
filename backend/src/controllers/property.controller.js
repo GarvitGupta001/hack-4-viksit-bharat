@@ -22,6 +22,13 @@ class PropertyController {
                 data: result,
             });
         } catch (error) {
+            // Handle property overlap error specifically
+            if (error.message.includes('Property overlaps with existing property')) {
+                return res.status(409).json({
+                    success: false,
+                    message: error.message,
+                });
+            }
             next(error);
         }
     }
@@ -64,6 +71,13 @@ class PropertyController {
                 data: property,
             });
         } catch (error) {
+            // Handle property overlap error specifically
+            if (error.message.includes('Updated property overlaps with existing property')) {
+                return res.status(409).json({
+                    success: false,
+                    message: error.message,
+                });
+            }
             next(error);
         }
     }

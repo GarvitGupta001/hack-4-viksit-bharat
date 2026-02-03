@@ -242,12 +242,15 @@ const EnhancedPropertyVerificationPage = () => {
             console.log("Property created successfully:", response);
             router.push("/dashboard");
         } catch (error) {
-            console.error("Error creating property:", error);
-            setErrors({
-                submit:
-                    error.response?.data?.message ||
-                    "Failed to create property",
-            });
+            console.error('Property creation error:', error);
+
+            // Check if it's a property overlap error
+            if (error.message.includes('Property overlaps with existing property')) {
+                alert(`Property Overlap Detected!\n\n${error.message}\n\nPlease adjust your property boundaries or contact support if you believe this is an error.`);
+                setErrors({ api: 'Property overlap detected. Please adjust your boundaries.' });
+            } else {
+                setErrors({ api: error.message || 'Property creation failed. Please try again.' });
+            }
         } finally {
             setIsLoading(false);
         }
@@ -448,14 +451,14 @@ const EnhancedPropertyVerificationPage = () => {
                                         )}
                                         {formData.boundaryCoordinates.length >
                                             0 && (
-                                            <div className="points-counter">
-                                                <strong>Points marked:</strong>{" "}
-                                                {
-                                                    formData.boundaryCoordinates
-                                                        .length
-                                                }
-                                            </div>
-                                        )}
+                                                <div className="points-counter">
+                                                    <strong>Points marked:</strong>{" "}
+                                                    {
+                                                        formData.boundaryCoordinates
+                                                            .length
+                                                    }
+                                                </div>
+                                            )}
                                         {errors.boundaryCoordinates && (
                                             <span className="error-message">
                                                 {errors.boundaryCoordinates}
