@@ -2,11 +2,21 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import dynamic from "next/dynamic";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import Link from "next/link";
 import apiClient from "@/services/api";
-import EnhancedMapComponent from "@/components/EnhancedMapComponent";
+
+const EnhancedMapComponent = dynamic(
+    () => import("@/components/EnhancedMapComponent"),
+    {
+        ssr: false, // This is the key line
+        loading: () => (
+            <div className="p-4 bg-gray-100 rounded">Loading Map...</div>
+        ), // Optional placeholder
+    },
+);
 
 const EnhancedPropertyVerificationPage = () => {
     const [step, setStep] = useState(1);
@@ -91,10 +101,17 @@ const EnhancedPropertyVerificationPage = () => {
 
         // Parse and validate coordinates
         try {
-            const lines = value.trim().split('\n').filter(line => line.trim());
-            const coords = lines.map(line => {
-                const [lng, lat] = line.trim().split(/[,\s]+/).map(Number);
-                if (isNaN(lng) || isNaN(lat)) throw new Error('Invalid coordinate');
+            const lines = value
+                .trim()
+                .split("\n")
+                .filter((line) => line.trim());
+            const coords = lines.map((line) => {
+                const [lng, lat] = line
+                    .trim()
+                    .split(/[,\s]+/)
+                    .map(Number);
+                if (isNaN(lng) || isNaN(lat))
+                    throw new Error("Invalid coordinate");
                 return [lng, lat];
             });
 
@@ -123,8 +140,8 @@ const EnhancedPropertyVerificationPage = () => {
         // Sync manual text with current coordinates when switching to manual mode
         if (newMode === "manual" && formData.boundaryCoordinates.length > 0) {
             const coordText = formData.boundaryCoordinates
-                .map(coord => `${coord[0]}, ${coord[1]}`)
-                .join('\n');
+                .map((coord) => `${coord[0]}, ${coord[1]}`)
+                .join("\n");
             setManualCoordinates(coordText);
         }
     };
@@ -224,11 +241,13 @@ const EnhancedPropertyVerificationPage = () => {
 
             console.log("Property created successfully:", response);
             // router.push(`/dashboard/properties/${response.data._id}`);
-            router.push('/dashboard');
+            router.push("/dashboard");
         } catch (error) {
             console.error("Error creating property:", error);
             setErrors({
-                submit: error.response?.data?.message || "Failed to create property",
+                submit:
+                    error.response?.data?.message ||
+                    "Failed to create property",
             });
         } finally {
             setIsLoading(false);
@@ -245,7 +264,8 @@ const EnhancedPropertyVerificationPage = () => {
                         <div className="page-header">
                             <h1>Register New Property</h1>
                             <p className="subtitle">
-                                Secure your property with blockchain verification
+                                Secure your property with blockchain
+                                verification
                             </p>
                         </div>
 
@@ -268,7 +288,9 @@ const EnhancedPropertyVerificationPage = () => {
                                 className={`progress-step ${step >= 3 ? "active" : ""}`}
                             >
                                 <div className="step-number">3</div>
-                                <div className="step-label">Review & Submit</div>
+                                <div className="step-label">
+                                    Review & Submit
+                                </div>
                             </div>
                         </div>
 
@@ -319,7 +341,9 @@ const EnhancedPropertyVerificationPage = () => {
                                             placeholder="Describe your property"
                                             rows="4"
                                             className={
-                                                errors.description ? "error" : ""
+                                                errors.description
+                                                    ? "error"
+                                                    : ""
                                             }
                                         />
                                         {errors.description && (
@@ -374,13 +398,17 @@ const EnhancedPropertyVerificationPage = () => {
                                     </div>
 
                                     <div className="form-group">
-                                        <div style={{ 
-                                            display: "flex", 
-                                            justifyContent: "space-between", 
-                                            alignItems: "center",
-                                            marginBottom: "1rem"
-                                        }}>
-                                            <label>Boundary Coordinates *</label>
+                                        <div
+                                            style={{
+                                                display: "flex",
+                                                justifyContent: "space-between",
+                                                alignItems: "center",
+                                                marginBottom: "1rem",
+                                            }}
+                                        >
+                                            <label>
+                                                Boundary Coordinates *
+                                            </label>
                                             <button
                                                 type="button"
                                                 onClick={toggleCoordinateMode}
@@ -399,75 +427,113 @@ const EnhancedPropertyVerificationPage = () => {
                                                     color: "#333",
                                                 }}
                                                 onMouseEnter={(e) => {
-                                                    e.target.style.backgroundColor = "#e0e0e0";
-                                                    e.target.style.transform = "translateY(-2px)";
+                                                    e.target.style.backgroundColor =
+                                                        "#e0e0e0";
+                                                    e.target.style.transform =
+                                                        "translateY(-2px)";
                                                 }}
                                                 onMouseLeave={(e) => {
-                                                    e.target.style.backgroundColor = "#f5f5f5";
-                                                    e.target.style.transform = "translateY(0)";
+                                                    e.target.style.backgroundColor =
+                                                        "#f5f5f5";
+                                                    e.target.style.transform =
+                                                        "translateY(0)";
                                                 }}
                                             >
-                                                {coordinateInputMode === "map" 
-                                                    ? "Switch to Manual Entry" 
+                                                {coordinateInputMode === "map"
+                                                    ? "Switch to Manual Entry"
                                                     : "Switch to Interactive Map"}
                                             </button>
                                         </div>
 
                                         {coordinateInputMode === "map" ? (
                                             <div>
-                                                <div style={{ 
-                                                    marginBottom: "1rem",
-                                                    padding: "1rem",
-                                                    backgroundColor: "#e3f2fd",
-                                                    borderRadius: "8px",
-                                                    border: "1px solid #90caf9"
-                                                }}>
-                                                    <p style={{ 
-                                                        margin: 0,
-                                                        fontSize: "0.9rem",
-                                                        color: "#1976d2"
-                                                    }}>
-                                                        📍 Click on the map to mark boundary points. Click the first point again to close the polygon.
+                                                <div
+                                                    style={{
+                                                        marginBottom: "1rem",
+                                                        padding: "1rem",
+                                                        backgroundColor:
+                                                            "#e3f2fd",
+                                                        borderRadius: "8px",
+                                                        border: "1px solid #90caf9",
+                                                    }}
+                                                >
+                                                    <p
+                                                        style={{
+                                                            margin: 0,
+                                                            fontSize: "0.9rem",
+                                                            color: "#1976d2",
+                                                        }}
+                                                    >
+                                                        📍 Click on the map to
+                                                        mark boundary points.
+                                                        Click the first point
+                                                        again to close the
+                                                        polygon.
                                                     </p>
                                                 </div>
                                                 <EnhancedMapComponent
-                                                    onCoordinatesChange={handleCoordinatesChange}
-                                                    initialCoordinates={formData.boundaryCoordinates}
+                                                    onCoordinatesChange={
+                                                        handleCoordinatesChange
+                                                    }
+                                                    initialCoordinates={
+                                                        formData.boundaryCoordinates
+                                                    }
                                                 />
-                                                {formData.boundaryCoordinates.length > 0 && (
-                                                    <div style={{ 
-                                                        marginTop: "1rem",
-                                                        padding: "0.75rem",
-                                                        backgroundColor: "#f5f5f5",
-                                                        borderRadius: "6px",
-                                                        fontSize: "0.9rem"
-                                                    }}>
-                                                        <strong>Points marked:</strong> {formData.boundaryCoordinates.length}
+                                                {formData.boundaryCoordinates
+                                                    .length > 0 && (
+                                                    <div
+                                                        style={{
+                                                            marginTop: "1rem",
+                                                            padding: "0.75rem",
+                                                            backgroundColor:
+                                                                "#f5f5f5",
+                                                            borderRadius: "6px",
+                                                            fontSize: "0.9rem",
+                                                        }}
+                                                    >
+                                                        <strong>
+                                                            Points marked:
+                                                        </strong>{" "}
+                                                        {
+                                                            formData
+                                                                .boundaryCoordinates
+                                                                .length
+                                                        }
                                                     </div>
                                                 )}
                                             </div>
                                         ) : (
                                             <div>
-                                                <div style={{ 
-                                                    marginBottom: "1rem",
-                                                    padding: "1rem",
-                                                    backgroundColor: "#fff3e0",
-                                                    borderRadius: "8px",
-                                                    border: "1px solid #ffb74d"
-                                                }}>
-                                                    <p style={{ 
-                                                        margin: 0,
-                                                        fontSize: "0.9rem",
-                                                        color: "#f57c00"
-                                                    }}>
-                                                        📝 Enter coordinates as longitude, latitude (one pair per line)
+                                                <div
+                                                    style={{
+                                                        marginBottom: "1rem",
+                                                        padding: "1rem",
+                                                        backgroundColor:
+                                                            "#fff3e0",
+                                                        borderRadius: "8px",
+                                                        border: "1px solid #ffb74d",
+                                                    }}
+                                                >
+                                                    <p
+                                                        style={{
+                                                            margin: 0,
+                                                            fontSize: "0.9rem",
+                                                            color: "#f57c00",
+                                                        }}
+                                                    >
+                                                        📝 Enter coordinates as
+                                                        longitude, latitude (one
+                                                        pair per line)
                                                         <br />
-                                                        Example: 77.2090, 28.6139
+                                                        Example: 77.2090,
+                                                        28.6139
                                                     </p>
                                                 </div>
                                                 <textarea
                                                     value={manualCoordinates}
-                                                    onChange={handleManualCoordinatesChange}
+                                                    onChange={
+                                                        handleManualCoordinatesChange
+                                                    }
                                                     placeholder="77.2090, 28.6139&#10;77.2095, 28.6139&#10;77.2095, 28.6135&#10;77.2090, 28.6135"
                                                     rows="8"
                                                     style={{
@@ -476,19 +542,32 @@ const EnhancedPropertyVerificationPage = () => {
                                                         fontSize: "0.95rem",
                                                         fontFamily: "monospace",
                                                         borderRadius: "6px",
-                                                        border: errors.boundaryCoordinates ? "1px solid #f44336" : "1px solid #ddd",
-                                                        resize: "vertical"
+                                                        border: errors.boundaryCoordinates
+                                                            ? "1px solid #f44336"
+                                                            : "1px solid #ddd",
+                                                        resize: "vertical",
                                                     }}
                                                 />
-                                                {formData.boundaryCoordinates.length > 0 && (
-                                                    <div style={{ 
-                                                        marginTop: "1rem",
-                                                        padding: "0.75rem",
-                                                        backgroundColor: "#f5f5f5",
-                                                        borderRadius: "6px",
-                                                        fontSize: "0.9rem"
-                                                    }}>
-                                                        <strong>Valid points:</strong> {formData.boundaryCoordinates.length}
+                                                {formData.boundaryCoordinates
+                                                    .length > 0 && (
+                                                    <div
+                                                        style={{
+                                                            marginTop: "1rem",
+                                                            padding: "0.75rem",
+                                                            backgroundColor:
+                                                                "#f5f5f5",
+                                                            borderRadius: "6px",
+                                                            fontSize: "0.9rem",
+                                                        }}
+                                                    >
+                                                        <strong>
+                                                            Valid points:
+                                                        </strong>{" "}
+                                                        {
+                                                            formData
+                                                                .boundaryCoordinates
+                                                                .length
+                                                        }
                                                     </div>
                                                 )}
                                             </div>
@@ -737,7 +816,11 @@ const EnhancedPropertyVerificationPage = () => {
                 .main-content {
                     flex: 1;
                     padding: 2rem 1rem;
-                    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+                    background: linear-gradient(
+                        135deg,
+                        #f5f7fa 0%,
+                        #c3cfe2 100%
+                    );
                 }
 
                 .container {
