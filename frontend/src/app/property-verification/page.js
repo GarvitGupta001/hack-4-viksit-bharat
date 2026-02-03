@@ -1,1159 +1,1152 @@
-'use client';
+"use client";
 
-import { motion } from 'framer-motion';
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
-import Navbar from '@/components/Navbar';
-import Footer from '@/components/Footer';
-import Link from 'next/link';
-import apiClient from '@/services/api';
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import dynamic from "next/dynamic";
+import Navbar from "@/components/Navbar";
+import Footer from "@/components/Footer";
+import Link from "next/link";
+import apiClient from "@/services/api";
 
-const PropertyVerificationPage = () => {
-  const [step, setStep] = useState(1); // Track current step
-  const [formData, setFormData] = useState({
-    title: '',
-    description: '',
-    address: '',
-    areaInSqFt: '',
-    boundaryCoordinates: [] // Will be an array of {lat, lng} objects
-  });
-  const [images, setImages] = useState([]);
-  const [previewImages, setPreviewImages] = useState([]);
-  const [errors, setErrors] = useState({});
-  const [isLoading, setIsLoading] = useState(false);
-  const router = useRouter();
+const EnhancedMapComponent = dynamic(
+    () => import("@/components/EnhancedMapComponent"),
+    {
+        ssr: false,
+        loading: () => (
+            <div className="p-4 bg-gray-100 rounded">Loading Map...</div>
+        ),
+    },
+);
 
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setFormData({
-      ...formData,
-      [name]: value
+const EnhancedPropertyVerificationPage = () => {
+    const [step, setStep] = useState(1);
+
+    // Form Data State
+    const [formData, setFormData] = useState({
+        title: "",
+        description: "",
+        address: "",
+        areaInSqFt: "",
+        boundaryCoordinates: [],
     });
 
-    // Clear error when user starts typing
-    if (errors[name]) {
-      setErrors({
-        ...errors,
-        [name]: ''
-      });
-    }
-  };
+    // File State
+    const [images, setImages] = useState([]);
+    const [previewImages, setPreviewImages] = useState([]);
+    const [documentFile, setDocumentFile] = useState(null); // New state for PDF
 
-  const handleImageChange = (e) => {
-    const files = Array.from(e.target.files);
-    
-    // Validate file types
-    const validFiles = files.filter(file => 
-      file.type.match('image/jpeg') || file.type.match('image/png')
-    );
+    const [errors, setErrors] = useState({});
+    const [isLoading, setIsLoading] = useState(false);
 
-    if (validFiles.length !== files.length) {
-      setErrors({
-        ...errors,
-        images: 'Only JPG and PNG files are allowed'
-      });
-    }
+    // Map/Coordinate Logic
+    const [coordinateInputMode, setCoordinateInputMode] = useState("map");
+    const [manualCoordinates, setManualCoordinates] = useState("");
 
-    // Add valid files to state
-    setImages(prev => [...prev, ...validFiles]);
+    const router = useRouter();
 
-    // Create previews for valid files
-    validFiles.forEach(file => {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setPreviewImages(prev => [...prev, reader.result]);
-      };
-      reader.readAsDataURL(file);
-    });
-  };
+    const handleInputChange = (e) => {
+        const { name, value } = e.target;
+        setFormData({
+            ...formData,
+            [name]: value,
+        });
 
-  const removeImage = (index) => {
-    setImages(prev => prev.filter((_, i) => i !== index));
-    setPreviewImages(prev => prev.filter((_, i) => i !== index));
-  };
+        if (errors[name]) {
+            setErrors({
+                ...errors,
+                [name]: "",
+            });
+        }
+    };
 
-  const validateStep1 = () => {
-    const newErrors = {};
+    // --- Image Handling ---
+    const handleImageChange = (e) => {
+        const files = Array.from(e.target.files);
+        const validFiles = files.filter(
+            (file) =>
+                file.type.match("image/jpeg") || file.type.match("image/png"),
+        );
 
-    if (!formData.title.trim()) {
-      newErrors.title = 'Title is required';
-    }
+        if (validFiles.length !== files.length) {
+            setErrors({
+                ...errors,
+                images: "Only JPG and PNG files are allowed",
+            });
+        }
 
-    if (!formData.description.trim()) {
-      newErrors.description = 'Description is required';
-    }
+        setImages((prev) => [...prev, ...validFiles]);
 
-    if (!formData.address.trim()) {
-      newErrors.address = 'Address is required';
-    }
+        validFiles.forEach((file) => {
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                setPreviewImages((prev) => [...prev, reader.result]);
+            };
+            reader.readAsDataURL(file);
+        });
+    };
 
-    if (!formData.areaInSqFt || isNaN(formData.areaInSqFt) || parseFloat(formData.areaInSqFt) <= 0) {
-      newErrors.areaInSqFt = 'Valid area in sq ft is required';
-    }
+    const removeImage = (index) => {
+        setImages((prev) => prev.filter((_, i) => i !== index));
+        setPreviewImages((prev) => prev.filter((_, i) => i !== index));
+    };
 
-    // Validate boundary coordinates - they are required for satellite verification
-    if (!formData.boundaryCoordinates || !Array.isArray(formData.boundaryCoordinates) || formData.boundaryCoordinates.length === 0) {
-      newErrors.boundaryCoordinates = 'Boundary coordinates are required for satellite verification';
-    } else {
-      const isValid = formData.boundaryCoordinates.every(coord =>
-        typeof coord === 'object' &&
-        coord.lat !== undefined &&
-        coord.lng !== undefined &&
-        typeof coord.lat === 'number' &&
-        typeof coord.lng === 'number' &&
-        !isNaN(coord.lat) &&
-        !isNaN(coord.lng)
-      );
+    // --- PDF Document Handling (New) ---
+    const handleDocumentChange = (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            if (file.type === "application/pdf") {
+                setDocumentFile(file);
+                if (errors.document) {
+                    setErrors({ ...errors, document: "" });
+                }
+            } else {
+                setErrors({
+                    ...errors,
+                    document: "Only PDF files are allowed",
+                });
+            }
+        }
+    };
 
-      if (!isValid) {
-        newErrors.boundaryCoordinates = 'Each coordinate must have valid lat and lng numbers';
-      }
-    }
+    const removeDocument = () => {
+        setDocumentFile(null);
+    };
 
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
+    // --- Coordinate Handling ---
+    const handleCoordinatesChange = (coordinates) => {
+        setFormData((prev) => ({
+            ...prev,
+            boundaryCoordinates: coordinates,
+        }));
 
-  const validateStep2 = () => {
-    if (images.length === 0) {
-      setErrors({ images: 'At least one image is required' });
-      return false;
-    }
-    return true;
-  };
+        if (errors.boundaryCoordinates) {
+            setErrors((prev) => ({
+                ...prev,
+                boundaryCoordinates: "",
+            }));
+        }
+    };
 
-  const handleNext = () => {
-    if (step === 1) {
-      if (validateStep1()) {
-        setStep(2);
-      }
-    } else if (step === 2) {
-      if (validateStep2()) {
-        setStep(3);
-      }
-    }
-  };
+    const handleManualCoordinatesChange = (e) => {
+        const value = e.target.value;
+        setManualCoordinates(value);
 
-  const handlePrevious = () => {
-    if (step > 1) {
-      setStep(step - 1);
-    }
-  };
+        try {
+            const lines = value
+                .trim()
+                .split("\n")
+                .filter((line) => line.trim());
+            const coords = lines.map((line) => {
+                const [lng, lat] = line
+                    .trim()
+                    .split(/[,\s]+/)
+                    .map(Number);
+                if (isNaN(lng) || isNaN(lat))
+                    throw new Error("Invalid coordinate");
+                return [lng, lat];
+            });
 
-  const handleSubmit = async () => {
-    if (!validateStep1() || !validateStep2()) {
-      return;
-    }
+            if (coords.length > 0) {
+                setFormData((prev) => ({
+                    ...prev,
+                    boundaryCoordinates: coords,
+                }));
+                if (errors.boundaryCoordinates) {
+                    setErrors((prev) => ({
+                        ...prev,
+                        boundaryCoordinates: "",
+                    }));
+                }
+            }
+        } catch (error) {
+            // Keep text input, don't update state yet
+        }
+    };
 
-    setIsLoading(true);
+    const toggleCoordinateMode = () => {
+        const newMode = coordinateInputMode === "map" ? "manual" : "map";
+        setCoordinateInputMode(newMode);
+        if (newMode === "manual" && formData.boundaryCoordinates.length > 0) {
+            const coordText = formData.boundaryCoordinates
+                .map((coord) => `${coord[0]}, ${coord[1]}`)
+                .join("\n");
+            setManualCoordinates(coordText);
+        }
+    };
 
-    try {
-      // Prepare property data
-      const propertyData = {
-        ...formData,
-        areaInSqFt: parseFloat(formData.areaInSqFt),
-        boundaryCoordinates: formData.boundaryCoordinates // This would typically come from a map interface
-      };
+    // --- Validation ---
+    const validateStep1 = () => {
+        const newErrors = {};
+        if (!formData.title.trim()) newErrors.title = "Title is required";
+        if (!formData.description.trim())
+            newErrors.description = "Description is required";
+        if (!formData.address.trim()) newErrors.address = "Address is required";
+        if (
+            !formData.areaInSqFt ||
+            isNaN(formData.areaInSqFt) ||
+            parseFloat(formData.areaInSqFt) <= 0
+        ) {
+            newErrors.areaInSqFt = "Valid area in sq ft is required";
+        }
+        if (
+            !formData.boundaryCoordinates ||
+            !Array.isArray(formData.boundaryCoordinates) ||
+            formData.boundaryCoordinates.length === 0
+        ) {
+            newErrors.boundaryCoordinates = "Boundary coordinates are required";
+        }
+        setErrors(newErrors);
+        return Object.keys(newErrors).length === 0;
+    };
 
-      // Call API to create property
-      const response = await apiClient.createProperty(propertyData, images);
+    const validateStep2 = () => {
+        const newErrors = {};
+        if (images.length === 0) {
+            newErrors.images = "At least one image is required";
+        }
+        if (!documentFile) {
+            newErrors.document = "Property document (PDF) is required";
+        }
 
-      // Show success message
-      // alert(`Property created successfully! You earned ${response.data.coinsEarned} carbon coins!`);
+        setErrors(newErrors);
+        return Object.keys(newErrors).length === 0;
+    };
 
-      // Redirect to dashboard
-      router.push('/dashboard');
-    } catch (error) {
-      console.error('Property creation error:', error);
-      setErrors({ api: error.message || 'Property creation failed. Please try again.' });
-      setIsLoading(false);
-    }
-  };
+    // --- Navigation ---
+    const handleNext = () => {
+        if (step === 1 && validateStep1()) setStep(2);
+        else if (step === 2 && validateStep2()) setStep(3);
+    };
 
-  return (
-    <div className="page-container" style={{ background: '#f8fafc' }}>
-      <Navbar />
-  
-      <main className="main-content">
-        <div className="container" style={{ paddingTop: '2rem', paddingBottom: '3rem' }}>
-          <div className="dashboard-container" style={{ maxWidth: '1040px' }}>
-            {/* Header */}
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.4, ease: [0.22, 0.61, 0.36, 1] }}
-              className="dashboard-header"
-              style={{ textAlign: 'left', marginBottom: '2rem' }}
-            >
-              <h1
-                className="dashboard-title"
-                style={{
-                  fontSize: 'clamp(2.2rem, 4vw, 2.8rem)',
-                  fontWeight: 700,
-                  letterSpacing: '-0.02em',
-                  color: '#0f172a',
-                  marginBottom: '0.5rem',
-                }}
-              >
-                Property Verification
-              </h1>
-              <p className="dashboard-subtitle" style={{ color: '#64748b', marginBottom: '1.25rem' }}>
-                Register and verify your green assets with a structured, step-by-step flow.
-              </p>
-              <div style={{ borderBottom: '1px solid #e2e8f0' }} />
-            </motion.div>
-  
-            {/* Process visualization (purely visual) */}
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.35, ease: [0.22, 0.61, 0.36, 1] }}
-              className="progress-indicator"
-              style={{
-                marginBottom: '2.5rem',
-                background: '#ffffff',
-                border: '1px solid #e2e8f0',
-                borderRadius: '20px',
-                boxShadow: '0 25px 60px rgba(15, 23, 42, 0.06)',
-                padding: '1.25rem 1.5rem',
-              }}
-            >
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0.75rem', alignItems: 'center' }}>
-                {[
-                  { s: 1, label: 'Register Property' },
-                  { s: 2, label: 'Upload Details' },
-                  { s: 3, label: 'Satellite Verification' },
-                ].map(({ s, label }, idx) => {
-                  const active = step >= s;
-                  const current = step === s;
-  
-                  return (
-                    <div key={s} style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', position: 'relative' }}>
-                      <div
-                        style={{
-                          width: 36,
-                          height: 36,
-                          borderRadius: 999,
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          fontWeight: 700,
-                          color: active ? '#0f172a' : '#64748b',
-                          background: active ? '#f0fdfa' : '#f8fafc',
-                          border: `1px solid ${active ? '#99f6e4' : '#e2e8f0'}`,
-                          boxShadow: current ? '0 10px 30px rgba(15,23,42,0.06)' : 'none',
-                        }}
-                      >
-                        {s}
-                      </div>
-  
-                      <div style={{ minWidth: 0 }}>
-                        <div
-                          style={{
-                            fontSize: '0.85rem',
-                            fontWeight: current ? 700 : 600,
-                            letterSpacing: '-0.01em',
-                            color: current ? '#0f172a' : '#64748b',
-                            whiteSpace: 'nowrap',
-                            overflow: 'hidden',
-                            textOverflow: 'ellipsis',
-                          }}
-                        >
-                          {label}
+    const handlePrevious = () => {
+        if (step > 1) setStep(step - 1);
+    };
+
+    const handleSubmit = async () => {
+        if (!validateStep1() || !validateStep2()) return;
+        setIsLoading(true);
+
+        try {
+            const propertyData = {
+                ...formData,
+                areaInSqFt: parseFloat(formData.areaInSqFt),
+            };
+
+            // Assuming API can handle documentFile as a 3rd arg or inside formData
+            const response = await apiClient.createProperty(
+                propertyData,
+                images,
+                documentFile,
+            );
+
+            console.log("Property created successfully:", response);
+            router.push("/dashboard");
+        } catch (error) {
+            console.error("Error creating property:", error);
+            setErrors({
+                submit:
+                    error.response?.data?.message ||
+                    "Failed to create property",
+            });
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    return (
+        <div className="page-container">
+            <Navbar />
+
+            <main className="main-content">
+                <div className="container">
+                    <div className="verification-page">
+                        <div className="page-header">
+                            <h1>Register New Property</h1>
+                            <p className="subtitle">
+                                Secure your property with blockchain
+                                verification
+                            </p>
                         </div>
-                        <div style={{ fontSize: '0.8rem', color: '#94a3b8' }}>
-                          Step {s}
-                        </div>
-                      </div>
-  
-                      {idx < 2 && (
-                        <div
-                          aria-hidden
-                          style={{
-                            position: 'absolute',
-                            right: '-0.375rem',
-                            top: '50%',
-                            transform: 'translateY(-50%)',
-                            width: '0.75rem',
-                            height: 2,
-                            background: '#e2e8f0',
-                          }}
-                        />
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-            </motion.div>
-  
-            <div className="dashboard-content">
-              {/* STEP 1 */}
-              {step === 1 && (
-                <div className="step-content">
-                  <motion.div
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.35, ease: [0.22, 0.61, 0.36, 1] }}
-                    style={{ textAlign: 'left', marginBottom: '2rem' }}
-                  >
-                    <h2
-                      style={{
-                        margin: 0,
-                        fontSize: '1.25rem',
-                        fontWeight: 700,
-                        letterSpacing: '-0.02em',
-                        color: '#0f172a',
-                      }}
-                    >
-                      Asset Information
-                    </h2>
-                    <p style={{ marginTop: '0.5rem', marginBottom: 0, color: '#64748b' }}>
-                      Provide accurate property details and boundary coordinates for satellite verification.
-                    </p>
-                  </motion.div>
-  
-                  {errors.api && (
-                    <div
-                      className="error-message"
-                      style={{
-                        marginBottom: '1rem',
-                        background: '#fef2f2',
-                        color: '#b91c1c',
-                        padding: '0.75rem',
-                        borderRadius: '12px',
-                        border: '1px solid #fecaca',
-                        fontSize: '0.9rem',
-                      }}
-                    >
-                      {errors.api}
-                    </div>
-                  )}
-  
-                  {/* A. Property Basic Details */}
-                  <motion.div
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.35, delay: 0.05, ease: [0.22, 0.61, 0.36, 1] }}
-                    whileHover={{ y: -4 }}
-                    className="verification-step"
-                    style={{
-                      background: '#ffffff',
-                      border: '1px solid #e2e8f0',
-                      borderRadius: '20px',
-                      boxShadow: '0 25px 60px rgba(15, 23, 42, 0.06)',
-                      padding: '2rem',
-                      marginBottom: '2.5rem',
-                    }}
-                  >
-                    <div style={{ fontSize: '0.8rem', letterSpacing: '0.08em', color: '#64748b', textTransform: 'uppercase', marginBottom: '1.25rem', fontWeight: 700 }}>
-                      Property Basic Details
-                    </div>
-  
-                    <div className="form-group" style={{ marginBottom: '1.25rem' }}>
-                      <label htmlFor="title" style={{ fontWeight: 500, fontSize: '0.85rem', color: '#334155', marginBottom: 6 }}>
-                        Property Title *
-                      </label>
-                      <input
-                        type="text"
-                        id="title"
-                        name="title"
-                        value={formData.title}
-                        onChange={handleInputChange}
-                        className={errors.title ? 'error' : ''}
-                        placeholder="e.g., 500 Mango Trees Farm"
-                        disabled={isLoading}
-                        style={{
-                          height: 52,
-                          padding: '0 16px',
-                          borderRadius: 12,
-                          border: '1px solid #e2e8f0',
-                          background: '#ffffff',
-                          fontSize: '0.95rem',
-                          color: '#0f172a',
-                          width: '100%',
-                          outline: 'none',
-                          boxShadow: 'none',
-                        }}
-                        onFocus={(e) => {
-                          e.currentTarget.style.borderColor = '#0f766e';
-                          e.currentTarget.style.boxShadow = '0 0 0 3px rgba(15, 118, 110, 0.12)';
-                        }}
-                        onBlur={(e) => {
-                          e.currentTarget.style.borderColor = '#e2e8f0';
-                          e.currentTarget.style.boxShadow = 'none';
-                        }}
-                      />
-                      {errors.title && (
-                        <span
-                          className="error-message"
-                          style={{
-                            display: 'block',
-                            marginTop: '0.5rem',
-                            background: '#fef2f2',
-                            color: '#b91c1c',
-                            padding: '0.75rem',
-                            borderRadius: '12px',
-                            fontSize: '0.85rem',
-                            border: '1px solid #fecaca',
-                          }}
-                        >
-                          {errors.title}
-                        </span>
-                      )}
-                    </div>
-  
-                    <div className="form-group" style={{ marginBottom: 0 }}>
-                      <label htmlFor="description" style={{ fontWeight: 500, fontSize: '0.85rem', color: '#334155', marginBottom: 6 }}>
-                        Description *
-                      </label>
-                      <textarea
-                        id="description"
-                        name="description"
-                        value={formData.description}
-                        onChange={handleInputChange}
-                        className={errors.description ? 'error' : ''}
-                        placeholder="Describe your green asset and its environmental benefits..."
-                        rows="4"
-                        disabled={isLoading}
-                        style={{
-                          padding: '14px 16px',
-                          borderRadius: 12,
-                          border: '1px solid #e2e8f0',
-                          background: '#ffffff',
-                          fontSize: '0.95rem',
-                          color: '#0f172a',
-                          width: '100%',
-                          outline: 'none',
-                          lineHeight: 1.6,
-                          resize: 'vertical',
-                        }}
-                        onFocus={(e) => {
-                          e.currentTarget.style.borderColor = '#0f766e';
-                          e.currentTarget.style.boxShadow = '0 0 0 3px rgba(15, 118, 110, 0.12)';
-                        }}
-                        onBlur={(e) => {
-                          e.currentTarget.style.borderColor = '#e2e8f0';
-                          e.currentTarget.style.boxShadow = 'none';
-                        }}
-                      ></textarea>
-                      {errors.description && (
-                        <span
-                          className="error-message"
-                          style={{
-                            display: 'block',
-                            marginTop: '0.5rem',
-                            background: '#fef2f2',
-                            color: '#b91c1c',
-                            padding: '0.75rem',
-                            borderRadius: '12px',
-                            fontSize: '0.85rem',
-                            border: '1px solid #fecaca',
-                          }}
-                        >
-                          {errors.description}
-                        </span>
-                      )}
-                    </div>
-                  </motion.div>
-  
-                  {/* B. Location Information */}
-                  <motion.div
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.35, delay: 0.1, ease: [0.22, 0.61, 0.36, 1] }}
-                    whileHover={{ y: -4 }}
-                    className="verification-step"
-                    style={{
-                      background: '#ffffff',
-                      border: '1px solid #e2e8f0',
-                      borderRadius: '20px',
-                      boxShadow: '0 25px 60px rgba(15, 23, 42, 0.06)',
-                      padding: '2rem',
-                      marginBottom: '2.5rem',
-                    }}
-                  >
-                    <div style={{ fontSize: '0.8rem', letterSpacing: '0.08em', color: '#64748b', textTransform: 'uppercase', marginBottom: '1.25rem', fontWeight: 700 }}>
-                      Location Information
-                    </div>
-  
-                    <div className="form-group" style={{ marginBottom: '1.25rem' }}>
-                      <label htmlFor="address" style={{ fontWeight: 500, fontSize: '0.85rem', color: '#334155', marginBottom: 6 }}>
-                        Address *
-                      </label>
-                      <input
-                        type="text"
-                        id="address"
-                        name="address"
-                        value={formData.address}
-                        onChange={handleInputChange}
-                        className={errors.address ? 'error' : ''}
-                        placeholder="Full address of the property"
-                        disabled={isLoading}
-                        style={{
-                          height: 52,
-                          padding: '0 16px',
-                          borderRadius: 12,
-                          border: '1px solid #e2e8f0',
-                          background: '#ffffff',
-                          fontSize: '0.95rem',
-                          color: '#0f172a',
-                          width: '100%',
-                          outline: 'none',
-                        }}
-                        onFocus={(e) => {
-                          e.currentTarget.style.borderColor = '#0f766e';
-                          e.currentTarget.style.boxShadow = '0 0 0 3px rgba(15, 118, 110, 0.12)';
-                        }}
-                        onBlur={(e) => {
-                          e.currentTarget.style.borderColor = '#e2e8f0';
-                          e.currentTarget.style.boxShadow = 'none';
-                        }}
-                      />
-                      {errors.address && (
-                        <span
-                          className="error-message"
-                          style={{
-                            display: 'block',
-                            marginTop: '0.5rem',
-                            background: '#fef2f2',
-                            color: '#b91c1c',
-                            padding: '0.75rem',
-                            borderRadius: '12px',
-                            fontSize: '0.85rem',
-                            border: '1px solid #fecaca',
-                          }}
-                        >
-                          {errors.address}
-                        </span>
-                      )}
-                    </div>
-  
-                    <div className="form-group" style={{ marginBottom: 0 }}>
-                      <label htmlFor="areaInSqFt" style={{ fontWeight: 500, fontSize: '0.85rem', color: '#334155', marginBottom: 6 }}>
-                        Area in Square Feet *
-                      </label>
-                      <input
-                        type="number"
-                        id="areaInSqFt"
-                        name="areaInSqFt"
-                        value={formData.areaInSqFt}
-                        onChange={handleInputChange}
-                        className={errors.areaInSqFt ? 'error' : ''}
-                        placeholder="Enter area in sq ft"
-                        min="1"
-                        disabled={isLoading}
-                        style={{
-                          height: 52,
-                          padding: '0 16px',
-                          borderRadius: 12,
-                          border: '1px solid #e2e8f0',
-                          background: '#ffffff',
-                          fontSize: '0.95rem',
-                          color: '#0f172a',
-                          width: '100%',
-                          outline: 'none',
-                        }}
-                        onFocus={(e) => {
-                          e.currentTarget.style.borderColor = '#0f766e';
-                          e.currentTarget.style.boxShadow = '0 0 0 3px rgba(15, 118, 110, 0.12)';
-                        }}
-                        onBlur={(e) => {
-                          e.currentTarget.style.borderColor = '#e2e8f0';
-                          e.currentTarget.style.boxShadow = 'none';
-                        }}
-                      />
-                      {errors.areaInSqFt && (
-                        <span
-                          className="error-message"
-                          style={{
-                            display: 'block',
-                            marginTop: '0.5rem',
-                            background: '#fef2f2',
-                            color: '#b91c1c',
-                            padding: '0.75rem',
-                            borderRadius: '12px',
-                            fontSize: '0.85rem',
-                            border: '1px solid #fecaca',
-                          }}
-                        >
-                          {errors.areaInSqFt}
-                        </span>
-                      )}
-                    </div>
-                  </motion.div>
-  
-                  {/* C. Boundary Coordinates / Map */}
-                  <motion.div
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.35, delay: 0.15, ease: [0.22, 0.61, 0.36, 1] }}
-                    whileHover={{ y: -4 }}
-                    className="verification-step"
-                    style={{
-                      background: '#ffffff',
-                      border: '1px solid #e2e8f0',
-                      borderRadius: '20px',
-                      boxShadow: '0 25px 60px rgba(15, 23, 42, 0.06)',
-                      padding: '2rem',
-                      marginBottom: '2.5rem',
-                    }}
-                  >
-                    <div style={{ fontSize: '0.8rem', letterSpacing: '0.08em', color: '#64748b', textTransform: 'uppercase', marginBottom: '1.25rem', fontWeight: 700 }}>
-                      Boundary Coordinates / Map
-                    </div>
-  
-                    <div className="form-group" style={{ marginBottom: 0 }}>
-                      <label htmlFor="boundaryCoordinates" style={{ fontWeight: 500, fontSize: '0.85rem', color: '#334155', marginBottom: 6 }}>
-                        Boundary Coordinates *
-                      </label>
-                      <textarea
-                        id="boundaryCoordinates"
-                        name="boundaryCoordinates"
-                        value={
-                          formData.boundaryCoordinates &&
-                          Array.isArray(formData.boundaryCoordinates) &&
-                          formData.boundaryCoordinates.length > 0
-                            ? JSON.stringify(formData.boundaryCoordinates.map(coord => [coord.lng, coord.lat]), null, 2)
-                            : "[\n  [77.1950, 28.5050],\n  [77.1965, 28.5050],\n  [77.1965, 28.5065],\n  [77.1950, 28.5065],\n  [77.1950, 28.5050]\n]"
-                        }
-                        onChange={(e) => {
-                          try {
-                            const rawInput = e.target.value.trim();
-                            // Check if it's a valid array format
-                            let parsed;
-  
-                            // Try to parse as-is first
-                            try {
-                              parsed = JSON.parse(rawInput);
-                            } catch {
-                              // If that fails, try wrapping in brackets if it looks like an array of arrays
-                              if (rawInput.startsWith('[') && rawInput.includes('[') && rawInput.endsWith(']')) {
-                                parsed = JSON.parse(`[${rawInput.replace(/^\[|\]$/g, '')}]`);
-                              } else {
-                                throw new Error('Invalid format');
-                              }
-                            }
-  
-                            if (Array.isArray(parsed)) {
-                              // Convert [lng, lat] format to {lng, lat} format
-                              const convertedCoords = parsed.map(coordPair => {
-                                if (Array.isArray(coordPair) && coordPair.length === 2) {
-                                  const [lng, lat] = coordPair;
-                                  return { lng: Number(lng), lat: Number(lat) };
-                                } else {
-                                  throw new Error('Each coordinate pair must be an array with 2 numbers [lng, lat]');
-                                }
-                              });
-  
-                              setFormData(prev => ({ ...prev, boundaryCoordinates: convertedCoords }));
-                              // Clear any error for this field
-                              setErrors(prev => ({ ...prev, boundaryCoordinates: '' }));
-                            } else {
-                              setErrors(prev => ({ ...prev, boundaryCoordinates: 'Must be an array of coordinate pairs' }));
-                            }
-                          } catch (error) {
-                            setErrors(prev => ({ ...prev, boundaryCoordinates: 'Invalid coordinate format. Use [[lng, lat], [lng, lat], ...] format' }));
-                          }
-                        }}
-                        placeholder='Enter coordinates in format: [[77.1950, 28.5050], [77.1965, 28.5050], ...]'
-                        rows="6"
-                        disabled={isLoading}
-                        required
-                        style={{
-                          padding: '14px 16px',
-                          borderRadius: 12,
-                          border: '1px solid #e2e8f0',
-                          background: '#ffffff',
-                          fontSize: '0.95rem',
-                          color: '#0f172a',
-                          width: '100%',
-                          outline: 'none',
-                          lineHeight: 1.6,
-                          resize: 'vertical',
-                          fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace',
-                        }}
-                        onFocus={(e) => {
-                          e.currentTarget.style.borderColor = '#0f766e';
-                          e.currentTarget.style.boxShadow = '0 0 0 3px rgba(15, 118, 110, 0.12)';
-                        }}
-                        onBlur={(e) => {
-                          e.currentTarget.style.borderColor = '#e2e8f0';
-                          e.currentTarget.style.boxShadow = 'none';
-                        }}
-                      ></textarea>
-  
-                      <small style={{ color: '#64748b', marginTop: '0.75rem', display: 'block' }}>
-                        Enter coordinates in <strong>[longitude, latitude]</strong> format. Example: <strong>[[77.1950, 28.5050], [77.1965, 28.5050], ...]</strong>
-                      </small>
-  
-                      {errors.boundaryCoordinates && (
-                        <span
-                          className="error-message"
-                          style={{
-                            display: 'block',
-                            marginTop: '0.75rem',
-                            background: '#fef2f2',
-                            color: '#b91c1c',
-                            padding: '0.75rem',
-                            borderRadius: '12px',
-                            fontSize: '0.85rem',
-                            border: '1px solid #fecaca',
-                          }}
-                        >
-                          {errors.boundaryCoordinates}
-                        </span>
-                      )}
-                    </div>
-                  </motion.div>
-                </div>
-              )}
-  
-              {/* STEP 2 */}
-              {step === 2 && (
-                <div className="step-content">
-                  <motion.div
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.35, ease: [0.22, 0.61, 0.36, 1] }}
-                    style={{ textAlign: 'left', marginBottom: '2rem' }}
-                  >
-                    <h2
-                      style={{
-                        margin: 0,
-                        fontSize: '1.25rem',
-                        fontWeight: 700,
-                        letterSpacing: '-0.02em',
-                        color: '#0f172a',
-                      }}
-                    >
-                      Documentation
-                    </h2>
-                    <p style={{ marginTop: '0.5rem', marginBottom: 0, color: '#64748b' }}>
-                      Upload clear supporting images. You can add multiple JPG/PNG files.
-                    </p>
-                  </motion.div>
-  
-                  {errors.api && (
-                    <div
-                      className="error-message"
-                      style={{
-                        marginBottom: '1rem',
-                        background: '#fef2f2',
-                        color: '#b91c1c',
-                        padding: '0.75rem',
-                        borderRadius: '12px',
-                        border: '1px solid #fecaca',
-                        fontSize: '0.9rem',
-                      }}
-                    >
-                      {errors.api}
-                    </div>
-                  )}
-  
-                  {/* D. Document Upload */}
-                  <motion.div
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.35, ease: [0.22, 0.61, 0.36, 1] }}
-                    whileHover={{ y: -4 }}
-                    className="verification-step"
-                    style={{
-                      background: '#ffffff',
-                      border: '1px solid #e2e8f0',
-                      borderRadius: '20px',
-                      boxShadow: '0 25px 60px rgba(15, 23, 42, 0.06)',
-                      padding: '2rem',
-                      marginBottom: '2.5rem',
-                    }}
-                  >
-                    <div style={{ fontSize: '0.8rem', letterSpacing: '0.08em', color: '#64748b', textTransform: 'uppercase', marginBottom: '1.25rem', fontWeight: 700 }}>
-                      Document Upload
-                    </div>
-  
-                    <div className="form-group" style={{ marginBottom: 0 }}>
-                      <label style={{ fontWeight: 500, fontSize: '0.85rem', color: '#334155', marginBottom: 6 }}>
-                        Upload Supporting Images *
-                      </label>
-  
-                      <div
-                        style={{
-                          padding: '2rem',
-                          borderRadius: '16px',
-                          border: '2px dashed #cbd5e1',
-                          background: '#f8fafc',
-                          textAlign: 'center',
-                          transition: '200ms ease',
-                        }}
-                        onMouseEnter={(e) => {
-                          e.currentTarget.style.background = '#f1f5f9';
-                        }}
-                        onMouseLeave={(e) => {
-                          e.currentTarget.style.background = '#f8fafc';
-                        }}
-                      >
-                        <div style={{ color: '#0f172a', fontWeight: 700, letterSpacing: '-0.01em', marginBottom: '0.25rem' }}>
-                          Drag & drop or click to upload
-                        </div>
-                        <div style={{ color: '#64748b', fontSize: '0.9rem', marginBottom: '1rem' }}>
-                          JPG or PNG • multiple files supported
-                        </div>
-  
-                        <input
-                          type="file"
-                          multiple
-                          accept=".jpg,.jpeg,.png"
-                          onChange={handleImageChange}
-                          className={errors.images ? 'error' : ''}
-                          disabled={isLoading}
-                          style={{
-                            width: '100%',
-                            maxWidth: 520,
-                            margin: '0 auto',
-                            background: '#ffffff',
-                            border: '1px solid #e2e8f0',
-                            borderRadius: 12,
-                            padding: '0.85rem 1rem',
-                            color: '#0f172a',
-                          }}
-                        />
-                      </div>
-  
-                      {errors.images && (
-                        <span
-                          className="error-message"
-                          style={{
-                            display: 'block',
-                            marginTop: '0.75rem',
-                            background: '#fef2f2',
-                            color: '#b91c1c',
-                            padding: '0.75rem',
-                            borderRadius: '12px',
-                            fontSize: '0.85rem',
-                            border: '1px solid #fecaca',
-                          }}
-                        >
-                          {errors.images}
-                        </span>
-                      )}
-  
-                      <div style={{ marginTop: '1rem', display: 'flex', flexWrap: 'wrap', gap: '1rem' }}>
-                        {previewImages.map((preview, index) => (
-                          <motion.div
-                            key={index}
-                            initial={{ opacity: 0, y: 8 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ duration: 0.25 }}
-                            whileHover={{ y: -4 }}
-                            style={{
-                              position: 'relative',
-                              width: '150px',
-                              height: '150px',
-                              borderRadius: '16px',
-                              border: '1px solid #e2e8f0',
-                              boxShadow: '0 10px 30px rgba(15,23,42,0.05)',
-                              background: '#ffffff',
-                              overflow: 'hidden',
-                            }}
-                          >
-                            <img
-                              src={preview}
-                              alt={`Preview ${index}`}
-                              className="preview-image"
-                              style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                            />
-                            <button
-                              type="button"
-                              onClick={() => removeImage(index)}
-                              style={{
-                                position: 'absolute',
-                                top: '10px',
-                                right: '10px',
-                                background: '#991b1b',
-                                color: 'white',
-                                border: 'none',
-                                borderRadius: '999px',
-                                width: '28px',
-                                height: '28px',
-                                cursor: 'pointer',
-                                boxShadow: '0 10px 30px rgba(15,23,42,0.12)',
-                                fontWeight: 700,
-                                lineHeight: '28px',
-                              }}
+
+                        {/* Progress Bar */}
+                        <div className="progress-bar">
+                            <div
+                                className={`progress-step ${step >= 1 ? "active" : ""} ${step > 1 ? "completed" : ""}`}
                             >
-                              ×
-                            </button>
-                          </motion.div>
-                        ))}
-                      </div>
+                                <div className="step-number">1</div>
+                                <div className="step-label">
+                                    Property Details
+                                </div>
+                            </div>
+                            <div
+                                className={`progress-step ${step >= 2 ? "active" : ""} ${step > 2 ? "completed" : ""}`}
+                            >
+                                <div className="step-number">2</div>
+                                <div className="step-label">Uploads</div>
+                            </div>
+                            <div
+                                className={`progress-step ${step >= 3 ? "active" : ""}`}
+                            >
+                                <div className="step-number">3</div>
+                                <div className="step-label">Review</div>
+                            </div>
+                        </div>
+
+                        <div className="form-container">
+                            {/* STEP 1: Details */}
+                            {step === 1 && (
+                                <div className="step-content">
+                                    <h2 className="step-title">
+                                        Step 1: Property Details
+                                    </h2>
+
+                                    <div className="form-group">
+                                        <label htmlFor="title">
+                                            Property Title *
+                                        </label>
+                                        <input
+                                            type="text"
+                                            id="title"
+                                            name="title"
+                                            value={formData.title}
+                                            onChange={handleInputChange}
+                                            placeholder="Enter property title"
+                                            className={
+                                                errors.title ? "error" : ""
+                                            }
+                                        />
+                                        {errors.title && (
+                                            <span className="error-message">
+                                                {errors.title}
+                                            </span>
+                                        )}
+                                    </div>
+
+                                    <div className="form-group">
+                                        <label htmlFor="description">
+                                            Description *
+                                        </label>
+                                        <textarea
+                                            id="description"
+                                            name="description"
+                                            value={formData.description}
+                                            onChange={handleInputChange}
+                                            placeholder="Describe your property"
+                                            rows="4"
+                                            className={
+                                                errors.description
+                                                    ? "error"
+                                                    : ""
+                                            }
+                                        />
+                                        {errors.description && (
+                                            <span className="error-message">
+                                                {errors.description}
+                                            </span>
+                                        )}
+                                    </div>
+
+                                    <div className="form-group">
+                                        <label htmlFor="address">
+                                            Address *
+                                        </label>
+                                        <input
+                                            type="text"
+                                            id="address"
+                                            name="address"
+                                            value={formData.address}
+                                            onChange={handleInputChange}
+                                            placeholder="Enter property address"
+                                            className={
+                                                errors.address ? "error" : ""
+                                            }
+                                        />
+                                        {errors.address && (
+                                            <span className="error-message">
+                                                {errors.address}
+                                            </span>
+                                        )}
+                                    </div>
+
+                                    <div className="form-group">
+                                        <label htmlFor="areaInSqFt">
+                                            Area (sq ft) *
+                                        </label>
+                                        <input
+                                            type="number"
+                                            id="areaInSqFt"
+                                            name="areaInSqFt"
+                                            value={formData.areaInSqFt}
+                                            onChange={handleInputChange}
+                                            placeholder="Enter area in square feet"
+                                            className={
+                                                errors.areaInSqFt ? "error" : ""
+                                            }
+                                        />
+                                        {errors.areaInSqFt && (
+                                            <span className="error-message">
+                                                {errors.areaInSqFt}
+                                            </span>
+                                        )}
+                                    </div>
+
+                                    <div className="form-group">
+                                        <div className="coord-header">
+                                            <label>
+                                                Boundary Coordinates *
+                                            </label>
+                                            <button
+                                                type="button"
+                                                onClick={toggleCoordinateMode}
+                                                className="toggle-mode-btn"
+                                            >
+                                                {coordinateInputMode === "map"
+                                                    ? "Switch to Manual Entry"
+                                                    : "Switch to Interactive Map"}
+                                            </button>
+                                        </div>
+
+                                        {coordinateInputMode === "map" ? (
+                                            <div>
+                                                <div className="info-box blue">
+                                                    <p>
+                                                        📍 Click on the map to
+                                                        mark boundary points.
+                                                        Click the first point
+                                                        again to close the
+                                                        polygon.
+                                                    </p>
+                                                </div>
+                                                <EnhancedMapComponent
+                                                    onCoordinatesChange={
+                                                        handleCoordinatesChange
+                                                    }
+                                                    initialCoordinates={
+                                                        formData.boundaryCoordinates
+                                                    }
+                                                />
+                                            </div>
+                                        ) : (
+                                            <div>
+                                                <div className="info-box orange">
+                                                    <p>
+                                                        📝 Enter coordinates as
+                                                        longitude, latitude (one
+                                                        pair per line)
+                                                    </p>
+                                                </div>
+                                                <textarea
+                                                    value={manualCoordinates}
+                                                    onChange={
+                                                        handleManualCoordinatesChange
+                                                    }
+                                                    placeholder="77.2090, 28.6139&#10;77.2095, 28.6139"
+                                                    rows="8"
+                                                    className={`manual-coords ${errors.boundaryCoordinates ? "error" : ""}`}
+                                                />
+                                            </div>
+                                        )}
+                                        {formData.boundaryCoordinates.length >
+                                            0 && (
+                                            <div className="points-counter">
+                                                <strong>Points marked:</strong>{" "}
+                                                {
+                                                    formData.boundaryCoordinates
+                                                        .length
+                                                }
+                                            </div>
+                                        )}
+                                        {errors.boundaryCoordinates && (
+                                            <span className="error-message">
+                                                {errors.boundaryCoordinates}
+                                            </span>
+                                        )}
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* STEP 2: Uploads */}
+                            {step === 2 && (
+                                <div className="step-content">
+                                    <h2 className="step-title">
+                                        Step 2: Upload Documents & Images
+                                    </h2>
+
+                                    {/* Image Upload */}
+                                    <div className="form-group">
+                                        <label htmlFor="images">
+                                            Property Images *
+                                        </label>
+                                        <div className="file-upload-wrapper">
+                                            <input
+                                                type="file"
+                                                id="images"
+                                                multiple
+                                                accept="image/jpeg,image/png"
+                                                onChange={handleImageChange}
+                                                className={
+                                                    errors.images ? "error" : ""
+                                                }
+                                            />
+                                            <p className="helper-text">
+                                                Upload clear images (JPG/PNG)
+                                            </p>
+                                        </div>
+                                        {errors.images && (
+                                            <span className="error-message">
+                                                {errors.images}
+                                            </span>
+                                        )}
+
+                                        <div className="image-previews">
+                                            {previewImages.map(
+                                                (preview, index) => (
+                                                    <div
+                                                        key={index}
+                                                        className="preview-item"
+                                                    >
+                                                        <img
+                                                            src={preview}
+                                                            alt={`Preview ${index}`}
+                                                        />
+                                                        <button
+                                                            type="button"
+                                                            onClick={() =>
+                                                                removeImage(
+                                                                    index,
+                                                                )
+                                                            }
+                                                        >
+                                                            ×
+                                                        </button>
+                                                    </div>
+                                                ),
+                                            )}
+                                        </div>
+                                    </div>
+
+                                    <hr className="divider" />
+
+                                    {/* NEW: PDF Document Upload */}
+                                    <div className="form-group">
+                                        <label htmlFor="document">
+                                            Property Documents (PDF) *
+                                        </label>
+                                        <div className="file-upload-wrapper">
+                                            <input
+                                                type="file"
+                                                id="document"
+                                                accept="application/pdf"
+                                                onChange={handleDocumentChange}
+                                                className={
+                                                    errors.document
+                                                        ? "error"
+                                                        : ""
+                                                }
+                                            />
+                                            <p className="helper-text">
+                                                Upload property deed or
+                                                ownership proof (PDF only)
+                                            </p>
+                                        </div>
+                                        {documentFile && (
+                                            <div className="file-selected-box">
+                                                <span>
+                                                    📄 {documentFile.name}
+                                                </span>
+                                                <button
+                                                    type="button"
+                                                    onClick={removeDocument}
+                                                    className="remove-file-btn"
+                                                >
+                                                    Remove
+                                                </button>
+                                            </div>
+                                        )}
+                                        {errors.document && (
+                                            <span className="error-message">
+                                                {errors.document}
+                                            </span>
+                                        )}
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* STEP 3: Readable Review */}
+                            {step === 3 && (
+                                <div className="step-content">
+                                    <h2 className="step-title">
+                                        Review & Submit
+                                    </h2>
+
+                                    <div className="review-container">
+                                        {/* Section 1: Basic Info */}
+                                        <div className="review-section">
+                                            <h3 className="review-heading">
+                                                Property Information
+                                            </h3>
+                                            <div className="review-grid">
+                                                <div className="review-item">
+                                                    <span className="review-label">
+                                                        Title
+                                                    </span>
+                                                    <span className="review-value">
+                                                        {formData.title}
+                                                    </span>
+                                                </div>
+                                                <div className="review-item">
+                                                    <span className="review-label">
+                                                        Area
+                                                    </span>
+                                                    <span className="review-value">
+                                                        {formData.areaInSqFt} sq
+                                                        ft
+                                                    </span>
+                                                </div>
+                                                <div className="review-item full-width">
+                                                    <span className="review-label">
+                                                        Description
+                                                    </span>
+                                                    <span className="review-value">
+                                                        {formData.description}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        {/* Section 2: Location */}
+                                        <div className="review-section">
+                                            <h3 className="review-heading">
+                                                Location Details
+                                            </h3>
+                                            <div className="review-grid">
+                                                <div className="review-item full-width">
+                                                    <span className="review-label">
+                                                        Address
+                                                    </span>
+                                                    <span className="review-value">
+                                                        {formData.address}
+                                                    </span>
+                                                </div>
+                                                <div className="review-item">
+                                                    <span className="review-label">
+                                                        Boundary Points
+                                                    </span>
+                                                    <span className="review-value">
+                                                        {
+                                                            formData
+                                                                .boundaryCoordinates
+                                                                .length
+                                                        }{" "}
+                                                        points marked
+                                                    </span>
+                                                </div>
+                                                <div className="review-item">
+                                                    <span className="review-label">
+                                                        Coordinate Mode
+                                                    </span>
+                                                    <span
+                                                        className="review-value"
+                                                        style={{
+                                                            textTransform:
+                                                                "capitalize",
+                                                        }}
+                                                    >
+                                                        {coordinateInputMode}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        {/* Section 3: Files */}
+                                        <div className="review-section">
+                                            <h3 className="review-heading">
+                                                Attached Files
+                                            </h3>
+                                            <div className="review-grid">
+                                                <div className="review-item">
+                                                    <span className="review-label">
+                                                        Images
+                                                    </span>
+                                                    <span className="review-value">
+                                                        {images.length} file(s)
+                                                        ready
+                                                    </span>
+                                                </div>
+                                                <div className="review-item">
+                                                    <span className="review-label">
+                                                        Document
+                                                    </span>
+                                                    <span className="review-value">
+                                                        {documentFile ? (
+                                                            documentFile.name
+                                                        ) : (
+                                                            <span
+                                                                style={{
+                                                                    color: "red",
+                                                                }}
+                                                            >
+                                                                Missing
+                                                            </span>
+                                                        )}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div className="disclaimer-box">
+                                            <p>
+                                                By submitting, you agree that
+                                                the information provided is
+                                                accurate and that you have the
+                                                legal right to register this
+                                                property.
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Navigation Buttons */}
+                            <div className="step-navigation">
+                                <button
+                                    onClick={handlePrevious}
+                                    className="action-button secondary"
+                                    disabled={step === 1 || isLoading}
+                                >
+                                    Previous
+                                </button>
+
+                                {step < 3 ? (
+                                    <button
+                                        onClick={handleNext}
+                                        className="action-button primary"
+                                        disabled={isLoading}
+                                    >
+                                        Next
+                                    </button>
+                                ) : (
+                                    <button
+                                        onClick={handleSubmit}
+                                        className="action-button primary"
+                                        disabled={isLoading}
+                                    >
+                                        {isLoading
+                                            ? "Submitting..."
+                                            : "Submit Property"}
+                                    </button>
+                                )}
+                            </div>
+
+                            <div className="dashboard-actions">
+                                <Link
+                                    href="/dashboard"
+                                    className="action-button secondary"
+                                >
+                                    Back to Dashboard
+                                </Link>
+                            </div>
+                        </div>
                     </div>
-                  </motion.div>
                 </div>
-              )}
-  
-              {/* STEP 3 */}
-              {step === 3 && (
-                <div className="step-content">
-                  <motion.div
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.35, ease: [0.22, 0.61, 0.36, 1] }}
-                    style={{ textAlign: 'left', marginBottom: '2rem' }}
-                  >
-                    <h2
-                      style={{
-                        margin: 0,
-                        fontSize: '1.25rem',
-                        fontWeight: 700,
-                        letterSpacing: '-0.02em',
-                        color: '#0f172a',
-                      }}
-                    >
-                      Review & Submit
-                    </h2>
-                    <p style={{ marginTop: '0.5rem', marginBottom: 0, color: '#64748b' }}>
-                      Confirm everything looks correct before submitting.
-                    </p>
-                  </motion.div>
-  
-                  {/* E. Final Submission */}
-                  <motion.div
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.35, ease: [0.22, 0.61, 0.36, 1] }}
-                    whileHover={{ y: -4 }}
-                    className="verification-step"
-                    style={{
-                      background: '#ffffff',
-                      border: '1px solid #e2e8f0',
-                      borderRadius: '20px',
-                      boxShadow: '0 25px 60px rgba(15, 23, 42, 0.06)',
-                      padding: '2rem',
-                      marginBottom: '2.5rem',
-                    }}
-                  >
-                    <div style={{ fontSize: '0.8rem', letterSpacing: '0.08em', color: '#64748b', textTransform: 'uppercase', marginBottom: '1.25rem', fontWeight: 700 }}>
-                      Final Submission
-                    </div>
-  
-                    <div
-                      className="review-summary"
-                      style={{
-                        background: '#f8fafc',
-                        border: '1px solid #e2e8f0',
-                        borderRadius: '16px',
-                        padding: '1.25rem',
-                      }}
-                    >
-                      <h3 style={{ marginTop: 0, color: '#0f172a', fontWeight: 700, letterSpacing: '-0.02em' }}>
-                        Property Details:
-                      </h3>
-                      <p style={{ color: '#0f172a' }}><strong>Title:</strong> {formData.title}</p>
-                      <p style={{ color: '#0f172a' }}><strong>Description:</strong> {formData.description}</p>
-                      <p style={{ color: '#0f172a' }}><strong>Address:</strong> {formData.address}</p>
-                      <p style={{ color: '#0f172a' }}><strong>Area:</strong> {formData.areaInSqFt} sq ft</p>
-                      <p style={{ color: '#0f172a' }}><strong>Images:</strong> {images.length} uploaded</p>
-                    </div>
-  
-                    <div style={{ marginTop: '1.5rem' }}>
-                      <p style={{ margin: 0, color: '#64748b', lineHeight: 1.7 }}>
-                        By submitting, you agree that the information provided is accurate and that you have the right to register this property.
-                      </p>
-                    </div>
-                  </motion.div>
-                </div>
-              )}
-  
-              {/* Navigation */}
-              <motion.div
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.35, ease: [0.22, 0.61, 0.36, 1] }}
-                className="step-navigation"
-                style={{
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  gap: '1rem',
-                  marginTop: '2rem',
-                  alignItems: 'center',
-                }}
-              >
-                <motion.button
-                  whileHover={{ scale: 1.01 }}
-                  whileTap={{ scale: 0.99 }}
-                  onClick={handlePrevious}
-                  className="action-button secondary"
-                  disabled={step === 1 || isLoading}
-                  style={{
-                    minWidth: '140px',
-                    height: 52,
-                    padding: '0 24px',
-                    borderRadius: 14,
-                    background: '#ffffff',
-                    border: '1px solid #e2e8f0',
-                    color: '#0f172a',
-                    fontWeight: 600,
-                    transition: '200ms ease',
-                    boxShadow: '0 10px 30px rgba(15,23,42,0.05)',
-                    opacity: (step === 1 || isLoading) ? 0.6 : 1,
-                    cursor: (step === 1 || isLoading) ? 'not-allowed' : 'pointer',
-                  }}
-                  onMouseEnter={(e) => {
-                    if (!e.currentTarget.disabled) e.currentTarget.style.background = '#f1f5f9';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.background = '#ffffff';
-                  }}
-                >
-                  Previous
-                </motion.button>
-  
-                {step < 3 ? (
-                  <motion.button
-                    whileHover={{ scale: 1.01 }}
-                    whileTap={{ scale: 0.99 }}
-                    onClick={handleNext}
-                    className="action-button primary"
-                    disabled={isLoading}
-                    style={{
-                      minWidth: '140px',
-                      height: 52,
-                      padding: '0 24px',
-                      borderRadius: 14,
-                      background: '#0f766e',
-                      border: '1px solid rgba(15, 23, 42, 0.06)',
-                      color: '#ffffff',
-                      fontWeight: 600,
-                      transition: '200ms ease',
-                      boxShadow: '0 10px 30px rgba(15,23,42,0.08)',
-                      opacity: isLoading ? 0.6 : 1,
-                      cursor: isLoading ? 'not-allowed' : 'pointer',
-                    }}
-                    onMouseEnter={(e) => {
-                      if (!e.currentTarget.disabled) {
-                        e.currentTarget.style.background = '#0d9488';
-                        e.currentTarget.style.transform = 'translateY(-1px)';
-                      }
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.background = '#0f766e';
-                      e.currentTarget.style.transform = 'translateY(0)';
-                    }}
-                  >
-                    Next
-                  </motion.button>
-                ) : (
-                  <motion.button
-                    whileHover={{ scale: 1.01 }}
-                    whileTap={{ scale: 0.99 }}
-                    onClick={handleSubmit}
-                    className="action-button primary"
-                    disabled={isLoading}
-                    style={{
-                      minWidth: '180px',
-                      height: 52,
-                      padding: '0 24px',
-                      borderRadius: 14,
-                      background: '#0f766e',
-                      border: '1px solid rgba(15, 23, 42, 0.06)',
-                      color: '#ffffff',
-                      fontWeight: 600,
-                      transition: '200ms ease',
-                      boxShadow: '0 10px 30px rgba(15,23,42,0.08)',
-                      opacity: isLoading ? 0.6 : 1,
-                      cursor: isLoading ? 'not-allowed' : 'pointer',
-                    }}
-                    onMouseEnter={(e) => {
-                      if (!e.currentTarget.disabled) {
-                        e.currentTarget.style.background = '#0d9488';
-                        e.currentTarget.style.transform = 'translateY(-1px)';
-                      }
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.background = '#0f766e';
-                      e.currentTarget.style.transform = 'translateY(0)';
-                    }}
-                  >
-                    {isLoading ? 'Submitting...' : 'Submit Property'}
-                  </motion.button>
-                )}
-              </motion.div>
-  
-              {/* Bottom actions */}
-              <motion.div
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.35, ease: [0.22, 0.61, 0.36, 1] }}
-                className="dashboard-actions"
-                style={{
-                  fontSize: '1rem',
-                  marginTop: '2rem',
-                  display: 'flex',
-                  gap: '1rem',
-                  flexWrap: 'wrap',
-                }}
-              >
-                <motion.div whileHover={{ y: -2 }} transition={{ duration: 0.22 }}>
-                  <Link
-                    href="/dashboard"
-                    className="action-button secondary"
-                    style={{
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      height: 52,
-                      padding: '0 24px',
-                      borderRadius: 14,
-                      background: '#ffffff',
-                      border: '1px solid #e2e8f0',
-                      color: '#0f172a',
-                      fontWeight: 600,
-                      boxShadow: '0 10px 30px rgba(15,23,42,0.05)',
-                      textDecoration: 'none',
-                    }}
-                  >
-                    Back to Dashboard
-                  </Link>
-                </motion.div>
-  
-                <motion.div whileHover={{ y: -2 }} transition={{ duration: 0.22 }}>
-                  <Link
-                    href="/property-verification/enhanced"
-                    className="action-button primary"
-                    style={{
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      height: 52,
-                      padding: '0 24px',
-                      borderRadius: 14,
-                      background: '#0f766e',
-                      border: '1px solid rgba(15, 23, 42, 0.06)',
-                      color: '#ffffff',
-                      fontWeight: 600,
-                      boxShadow: '0 10px 30px rgba(15,23,42,0.08)',
-                      textDecoration: 'none',
-                    }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.background = '#0d9488';
-                      e.currentTarget.style.transform = 'translateY(-1px)';
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.background = '#0f766e';
-                      e.currentTarget.style.transform = 'translateY(0)';
-                    }}
-                  >
-                    Enhanced Verification (with Map)
-                  </Link>
-                </motion.div>
-              </motion.div>
-            </div>
-          </div>
+            </main>
+            <Footer />
+
+            <style jsx>{`
+                /* General Layout */
+                .page-container {
+                    min-height: 100vh;
+                    display: flex;
+                    flex-direction: column;
+                }
+                .main-content {
+                    flex: 1;
+                    padding: 2rem 1rem;
+                    background: linear-gradient(
+                        135deg,
+                        #f5f7fa 0%,
+                        #c3cfe2 100%
+                    );
+                }
+                .container {
+                    max-width: 900px;
+                    margin: 0 auto;
+                }
+                .verification-page {
+                    background: white;
+                    border-radius: 12px;
+                    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+                    padding: 2.5rem;
+                }
+
+                /* Header & Titles */
+                .page-header {
+                    text-align: center;
+                    margin-bottom: 2rem;
+                }
+                .page-header h1 {
+                    color: #1b5e20;
+                    font-size: 2rem;
+                    margin-bottom: 0.5rem;
+                }
+                .subtitle {
+                    color: #444;
+                    font-size: 1.1rem;
+                }
+                .step-title {
+                    text-align: center;
+                    margin-bottom: 2rem;
+                    color: #2e7d32;
+                }
+
+                /* Progress Bar - Contrast Fixes */
+                .progress-bar {
+                    display: flex;
+                    justify-content: space-between;
+                    margin-bottom: 3rem;
+                    position: relative;
+                }
+                .progress-bar::before {
+                    content: "";
+                    position: absolute;
+                    top: 20px;
+                    left: 10%;
+                    right: 10%;
+                    height: 2px;
+                    background: #bdbdbd;
+                    z-index: 0;
+                }
+                .progress-step {
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+                    position: relative;
+                    z-index: 1;
+                    flex: 1;
+                }
+                .step-number {
+                    width: 40px;
+                    height: 40px;
+                    border-radius: 50%;
+                    background: #e0e0e0;
+                    color: #616161; /* Darker grey for visibility */
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    font-weight: bold;
+                    margin-bottom: 0.5rem;
+                    border: 2px solid #e0e0e0;
+                }
+                .progress-step.active .step-number {
+                    background: #2e7d32;
+                    color: white;
+                    border-color: #2e7d32;
+                }
+                .progress-step.completed .step-number {
+                    background: #4caf50;
+                    color: white;
+                    border-color: #4caf50;
+                }
+                .step-label {
+                    font-size: 0.9rem;
+                    color: #444;
+                    text-align: center;
+                    font-weight: 500;
+                }
+                .progress-step.active .step-label {
+                    color: #1b5e20;
+                    font-weight: 700;
+                }
+
+                /* Forms */
+                .form-container {
+                    margin-top: 1rem;
+                }
+                .form-group {
+                    margin-bottom: 1.5rem;
+                }
+                .form-group label {
+                    display: block;
+                    margin-bottom: 0.5rem;
+                    font-weight: 600;
+                    color: #222;
+                }
+                .form-group input[type="text"],
+                .form-group input[type="number"],
+                .form-group textarea,
+                .manual-coords {
+                    width: 100%;
+                    padding: 0.75rem;
+                    border: 1px solid #ccc;
+                    border-radius: 6px;
+                    font-size: 1rem;
+                    color: #333;
+                }
+                .form-group input:focus,
+                .form-group textarea:focus {
+                    outline: none;
+                    border-color: #2e7d32;
+                    box-shadow: 0 0 0 2px rgba(46, 125, 50, 0.1);
+                }
+                .error {
+                    border-color: #d32f2f !important;
+                }
+                .error-message {
+                    display: block;
+                    color: #d32f2f;
+                    font-size: 0.85rem;
+                    margin-top: 0.4rem;
+                    font-weight: 500;
+                }
+                .helper-text {
+                    font-size: 0.85rem;
+                    color: #555;
+                    margin-top: 0.4rem;
+                }
+
+                /* Coordinate Specifics */
+                .coord-header {
+                    display: flex;
+                    justify-content: space-between;
+                    alignitems: center;
+                    margin-bottom: 1rem;
+                }
+                .toggle-mode-btn {
+                    padding: 0.5rem 1rem;
+                    background: #f5f5f5;
+                    border: 1px solid #ccc;
+                    border-radius: 6px;
+                    cursor: pointer;
+                    font-size: 0.9rem;
+                    color: #333;
+                    font-weight: 600;
+                }
+                .toggle-mode-btn:hover {
+                    background: #e0e0e0;
+                }
+                .info-box {
+                    padding: 1rem;
+                    border-radius: 8px;
+                    margin-bottom: 1rem;
+                }
+                .info-box p {
+                    margin: 0;
+                    font-size: 0.9rem;
+                    font-weight: 500;
+                }
+                .info-box.blue {
+                    background: #e3f2fd;
+                    border: 1px solid #90caf9;
+                }
+                .info-box.blue p {
+                    color: #0d47a1; /* Darker blue */
+                }
+                .info-box.orange {
+                    background: #fff3e0;
+                    border: 1px solid #ffb74d;
+                }
+                .info-box.orange p {
+                    color: #e65100; /* Darker orange */
+                }
+                .points-counter {
+                    margin-top: 1rem;
+                    padding: 0.75rem;
+                    background: #f5f5f5;
+                    border-radius: 6px;
+                    font-size: 0.9rem;
+                    color: #333;
+                }
+
+                /* File Upload Styles */
+                .file-upload-wrapper input[type="file"] {
+                    padding: 0.5rem;
+                    background: #fafafa;
+                    border: 1px dashed #ccc;
+                    width: 100%;
+                }
+                .image-previews {
+                    margin-top: 1rem;
+                    display: flex;
+                    flex-wrap: wrap;
+                    gap: 1rem;
+                }
+                .preview-item {
+                    position: relative;
+                    width: 120px;
+                    height: 120px;
+                    border-radius: 8px;
+                    overflow: hidden;
+                    border: 1px solid #eee;
+                }
+                .preview-item img {
+                    width: 100%;
+                    height: 100%;
+                    object-fit: cover;
+                }
+                .preview-item button {
+                    position: absolute;
+                    top: 0;
+                    right: 0;
+                    background: rgba(244, 67, 54, 0.9);
+                    color: white;
+                    border: none;
+                    width: 24px;
+                    height: 24px;
+                    cursor: pointer;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                }
+                .divider {
+                    margin: 2rem 0;
+                    border: 0;
+                    border-top: 1px solid #eee;
+                }
+                .file-selected-box {
+                    margin-top: 0.5rem;
+                    padding: 0.75rem;
+                    background: #e8f5e9;
+                    border: 1px solid #c8e6c9;
+                    border-radius: 6px;
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    color: #2e7d32;
+                    font-weight: 500;
+                }
+                .remove-file-btn {
+                    background: none;
+                    border: none;
+                    color: #d32f2f;
+                    cursor: pointer;
+                    font-size: 0.85rem;
+                    text-decoration: underline;
+                }
+
+                /* Step 3: Review Grid Layout */
+                .review-container {
+                    padding: 0 1rem;
+                }
+                .review-section {
+                    margin-bottom: 2rem;
+                    border-bottom: 1px solid #eee;
+                    padding-bottom: 1.5rem;
+                }
+                .review-section:last-child {
+                    border-bottom: none;
+                }
+                .review-heading {
+                    color: #1b5e20;
+                    margin-top: 0;
+                    margin-bottom: 1rem;
+                    font-size: 1.1rem;
+                    border-left: 4px solid #4caf50;
+                    padding-left: 0.75rem;
+                }
+
+                .review-grid {
+                    display: grid;
+                    grid-template-columns: 1fr 1fr;
+                    gap: 1.5rem;
+                }
+                .review-item {
+                    display: flex;
+                    flex-direction: column;
+                }
+                .review-item.full-width {
+                    grid-column: 1 / -1;
+                }
+
+                .review-label {
+                    font-size: 0.85rem;
+                    color: #666;
+                    font-weight: 600;
+                    text-transform: uppercase;
+                    letter-spacing: 0.5px;
+                    margin-bottom: 0.25rem;
+                }
+                .review-value {
+                    font-size: 1.05rem;
+                    color: #222;
+                    font-weight: 500;
+                    word-break: break-word;
+                }
+
+                .disclaimer-box {
+                    background: #fafafa;
+                    padding: 1.5rem;
+                    border-radius: 8px;
+                    text-align: center;
+                    border: 1px solid #eee;
+                    margin-top: 1rem;
+                }
+                .disclaimer-box p {
+                    color: #555;
+                    margin: 0;
+                    font-size: 0.9rem;
+                }
+
+                /* Buttons */
+                .step-navigation {
+                    display: flex;
+                    justify-content: space-between;
+                    margin-top: 2rem;
+                    gap: 1rem;
+                }
+                .action-button {
+                    padding: 0.85rem 1.5rem;
+                    border: none;
+                    border-radius: 6px;
+                    font-size: 1rem;
+                    cursor: pointer;
+                    transition: all 0.2s ease;
+                    font-weight: 600;
+                    min-width: 140px;
+                    display: inline-flex;
+                    align-items: center;
+                    justify-content: center;
+                }
+                .action-button.primary {
+                    background: #2e7d32;
+                    color: white;
+                    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+                }
+                .action-button.primary:hover:not(:disabled) {
+                    background: #1b5e20;
+                    transform: translateY(-1px);
+                }
+                .action-button.secondary {
+                    background: #fff;
+                    color: #333;
+                    border: 1px solid #ccc;
+                }
+                .action-button.secondary:hover:not(:disabled) {
+                    background: #f5f5f5;
+                    border-color: #bbb;
+                }
+                .action-button:disabled {
+                    opacity: 0.6;
+                    cursor: not-allowed;
+                }
+                .dashboard-actions {
+                    text-align: center;
+                    margin-top: 2rem;
+                }
+                .dashboard-actions .action-button {
+                    text-decoration: none;
+                }
+
+                @media (max-width: 600px) {
+                    .review-grid {
+                        grid-template-columns: 1fr;
+                    }
+                    .verification-page {
+                        padding: 1.5rem;
+                    }
+                }
+            `}</style>
         </div>
-      </main>
-  
-      <Footer />
-    </div>
-  );
+    );
 };
 
-export default PropertyVerificationPage;
+export default EnhancedPropertyVerificationPage;
