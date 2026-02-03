@@ -18,4 +18,15 @@ RUN pip install -r requirements.txt
 
 COPY . .
 
-CMD ["gunicorn", "--bind", ":$PORT", "app:app"]
+CMD exec gunicorn \
+    --bind :$PORT \
+    --workers 1 \
+    --threads 1 \
+    --timeout 600 \
+    --worker-class sync \
+    --max-requests 100 \
+    --max-requests-jitter 10 \
+    --access-logfile - \
+    --error-logfile - \
+    --log-level info \
+    app:app
